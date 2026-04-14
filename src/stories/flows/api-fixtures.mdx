@@ -1,0 +1,53 @@
+import { Meta, Source } from '@storybook/addon-docs/blocks';
+import { defaultActive } from '../../screens/toggle/fixtures/default-active.js';
+import { defaultOnHold } from '../../screens/toggle/fixtures/default-on-hold.js';
+import { errorResponse } from '../../screens/toggle/fixtures/error.js';
+import { genericError } from '../../screens/error/fixtures/generic.js';
+import { sessionExpiredError } from '../../screens/error/fixtures/session-expired.js';
+
+<Meta title="Flows" name="API Fixtures" />
+
+# API Fixtures & Mocks
+
+This document serves as a centralized reference for Backend Developers and QA to validate the shape of the mock data used throughout the **Temporary Holdcard** flows.
+
+---
+
+## 1. Toggle Screen Data
+
+The Toggle screen relies on a GET request to fetch the initial status of the card.
+
+### Active Card
+**Simulated Endpoint:** `GET /api/v1/cards/{cardId}`
+
+<Source dark language="json" code={JSON.stringify(defaultActive, null, 2)} />
+
+### On-Hold Card
+**Simulated Endpoint:** `GET /api/v1/cards/{cardId}`
+
+<Source dark language="json" code={JSON.stringify(defaultOnHold, null, 2)} />
+
+---
+
+## 2. Action Submissions (Success States)
+
+Holding or unholding the card submits data via POST. The UI confirms these actions based purely on the successful 200/204 response.
+
+**Hold Endpoint (Action):** `POST /api/v1/cards/{cardId}/hold`
+**Unhold Endpoint (Action):** `POST /api/v1/cards/{cardId}/unhold`
+
+*(No payload required for these actions other than auth headers)*
+
+---
+
+## 3. Error Schemas
+
+The following objects are ingested by the Error Screen when backend requests fail.
+
+### Generic Failed Response
+
+<Source dark language="json" code={JSON.stringify(genericError, null, 2)} />
+
+### Session Expired (Auth Error)
+
+<Source dark language="json" code={JSON.stringify(sessionExpiredError, null, 2)} />

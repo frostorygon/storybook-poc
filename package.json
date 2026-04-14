@@ -1,0 +1,36 @@
+{
+  "name": "storybook-poc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@lion/ui": "^0.16.1",
+    "lit": "^3.3.2"
+  },
+  "devDependencies": {
+    "@chromatic-com/storybook": "^5.1.2",
+    "@open-wc/testing": "^4.0.0",
+    "@storybook/addon-a11y": "^10.3.5",
+    "@storybook/addon-docs": "^10.3.5",
+    "@storybook/addon-vitest": "^10.3.5",
+    "@storybook/test": "^8.6.15",
+    "@storybook/web-components-vite": "^10.3.5",
+    "@vitest/browser-playwright": "^4.1.4",
+    "@vitest/coverage-v8": "^4.1.4",
+    "playwright": "^1.59.1",
+    "storybook": "^10.3.5",
+    "storybook-addon-mock": "^6.0.1",
+    "vitest": "^4.1.4"
+  }
+}

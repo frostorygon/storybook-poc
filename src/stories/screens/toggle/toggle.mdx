@@ -1,0 +1,28 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Screens / Toggle / Docs" />
+
+# Toggle Screen
+
+The entry screen. Displays the current card status and a toggle action.
+
+## States
+
+| State              | Story Name           | Description                         |
+|--------------------|----------------------|-------------------------------------|
+| Card is active     | `Default - Active`   | Shows "Hold Card" action            |
+| Card is on hold    | `Default - On Hold`  | Shows "Unhold Card" action          |
+| Fetching status    | `Loading`            | Spinner while loading card details  |
+| Fetch failed       | `Error`              | Failed to load card details         |
+
+## API Dependencies
+
+| Endpoint                            | Method | Used for                |
+|--------------------------------------|--------|-------------------------|
+| `/api/v1/cards/{cardId}`             | GET    | Fetch current card status |
+| `/api/v1/cards/{cardId}/hold`        | POST   | Hold the card            |
+| `/api/v1/cards/{cardId}/unhold`      | POST   | Unhold the card          |
+
+## Fixtures
+
+See `fixtures/` directory for mock API responses used by each story.
