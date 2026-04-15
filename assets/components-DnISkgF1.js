@@ -1,0 +1,1 @@
+import{r as e}from"./chunk-RD3KTAHR-Dw9vCZVz.js";import{rt as t}from"./components-CnnT50Jh.js";t();export{e as createCopyToClipboardFunction};
