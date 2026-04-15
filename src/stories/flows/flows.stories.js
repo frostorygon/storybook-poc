@@ -14,7 +14,6 @@ import '../../holdcard-flow/feature-flow.js';
 
 export default {
   title: 'Flows',
-  component: 'feature-flow',
 };
 
 export const HoldCard = {

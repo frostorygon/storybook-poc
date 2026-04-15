@@ -4,9 +4,9 @@ const preview = {
     options: {
       storySort: {
         order: [
-          'Introduction',
-          'Flows', ['Overview', 'API Fixtures', '*'],
-          'Screens',
+          'Docs & Overview', ['Introduction'],
+          'Flows',           ['Overview', 'API Fixtures', '*'],
+          'Screens',         ['*', ['Docs', '*']],
         ],
       },
     },
@@ -15,6 +15,13 @@ const preview = {
        color: /(background|color)$/i,
        date: /Date$/i,
       },
+    },
+    backgrounds: {
+      default: 'dark',
+      values: [
+        { name: 'dark', value: '#181b1f' },
+        { name: 'light', value: '#ffffff' },
+      ],
     },
   },
 };

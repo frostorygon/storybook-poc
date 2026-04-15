@@ -1,11 +1,11 @@
 import { html } from 'lit';
-import '../../../screens/error/holdcard-error-screen.js';
-import { genericError } from '../../../screens/error/fixtures/generic.js';
-import { timeoutError } from '../../../screens/error/fixtures/timeout.js';
-import { sessionExpiredError } from '../../../screens/error/fixtures/session-expired.js';
+import './holdcard-error-screen.js';
+import { genericError } from './fixtures/generic.js';
+import { timeoutError } from './fixtures/timeout.js';
+import { sessionExpiredError } from './fixtures/session-expired.js';
 
 export default {
-  title: 'Screens / Error',
+  title: 'Screens / Error Screen',
   component: 'holdcard-error-screen',
 };
 

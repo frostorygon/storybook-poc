@@ -1,10 +1,10 @@
 import { html } from 'lit';
-import '../../../screens/success/holdcard-success-screen.js';
-import { holdSuccess } from '../../../screens/success/fixtures/hold-success.js';
-import { unholdSuccess } from '../../../screens/success/fixtures/unhold-success.js';
+import './holdcard-success-screen.js';
+import { holdSuccess } from './fixtures/hold-success.js';
+import { unholdSuccess } from './fixtures/unhold-success.js';
 
 export default {
-  title: 'Screens / Success',
+  title: 'Screens / Success Screen',
   component: 'holdcard-success-screen',
 };
 

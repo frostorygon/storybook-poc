@@ -1,11 +1,11 @@
 import { html } from 'lit';
-import '../../../screens/toggle/holdcard-toggle-screen.js';
-import { defaultActive } from '../../../screens/toggle/fixtures/default-active.js';
-import { defaultOnHold } from '../../../screens/toggle/fixtures/default-on-hold.js';
-import { errorResponse } from '../../../screens/toggle/fixtures/error.js';
+import './holdcard-toggle-screen.js';
+import { defaultActive } from './fixtures/default-active.js';
+import { defaultOnHold } from './fixtures/default-on-hold.js';
+import { errorResponse } from './fixtures/error.js';
 
 export default {
-  title: 'Screens / Toggle',
+  title: 'Screens / Toggle Screen',
   component: 'holdcard-toggle-screen',
 };
 
