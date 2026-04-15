@@ -13,7 +13,7 @@ import { within, userEvent, expect } from '@storybook/test';
 import '../../holdcard-flow/feature-flow.js';
 
 export default {
-  title: 'Flows',
+  title: 'Flows / Scenarios',
 };
 
 export const HoldCard = {

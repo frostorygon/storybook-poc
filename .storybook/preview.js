@@ -6,7 +6,7 @@ const preview = {
         includeNames: true,
         order: [
           'Docs & Overview', ['Introduction'],
-          'Flows', ['Overview', 'API Fixtures', '*'],
+          'Flows', ['Overview', 'API Fixtures', 'Scenarios', ['*']],
           'Screens', ['*', ['Docs', '*']],
         ],
       },
