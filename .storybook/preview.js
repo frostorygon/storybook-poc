@@ -3,10 +3,11 @@ const preview = {
   parameters: {
     options: {
       storySort: {
+        includeNames: true,
         order: [
           'Docs & Overview', ['Introduction'],
-          'Flows',           ['Overview', 'API Fixtures', '*'],
-          'Screens',         ['*', ['Docs', '*']],
+          'Flows', ['Overview', 'API Fixtures', '*'],
+          'Screens', ['*', ['Docs', '*']],
         ],
       },
     },
