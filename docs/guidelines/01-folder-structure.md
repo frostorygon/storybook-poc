@@ -9,9 +9,12 @@ src/
 ├── components/              # Reusable, domain-agnostic UI
 │   ├── layout/              # Structural atoms (grids, slots, no logic)
 │   │   └── status-screen-layout/
-│   └── screens/             # Configurable shells (error, success)
-│       ├── status-error-screen/
-│       └── status-success-screen/
+│   ├── screens/             # Configurable shells (error, success)
+│   │   ├── status-error-screen/
+│   │   └── status-success-screen/
+│   └── ui/                  # General UI elements (buttons, modals, inputs)
+│       ├── custom-button/
+│       └── custom-modal/
 ├── screens/                 # Domain-specific "smart" components
 │   ├── toggle/              # holdcard-toggle-screen
 │   └── error/
@@ -26,6 +29,18 @@ src/
 ├── tokens.js                # Design tokens (CSS custom properties)
 └── types.js                 # Shared JSDoc typedefs
 ```
+
+### Categorizing Shared Components (`src/components/`)
+
+When you promote a component to the shared `components/` directory, **do not dump it at the root**. Group it by category so the folder doesn't become a mess as the project scales.
+
+Best practice categories:
+- `layout/` — Structural atoms (grids, layout containers)
+- `screens/` — Configurable shells (error screen, success screen)
+- `ui/` (or `elements/`) — General interactive elements (custom buttons, modals, badges, tooltips)
+- `forms/` — Input fields, dropdowns, checkboxes
+
+**Example:** A reusable modal gets its own folder at `src/components/ui/custom-modal/` and follows the 7-file standard (`index.js`, `.styles.js`, `.template.js`, etc.).
 
 ### Why `components/` and `screens/` are separate
 
