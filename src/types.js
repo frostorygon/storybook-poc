@@ -25,10 +25,9 @@
  * Normalised error shape used by all Holdcard screens.
  * HoldcardService._normalizeError() always produces this shape.
  * @typedef {Object} ErrorContext
- * @property {string}  errorCode    - machine-readable code, e.g. "TIMEOUT"
- * @property {string}  errorTitle   - human-readable heading shown in the UI
- * @property {string}  errorMessage - human-readable detail shown in the UI
- * @property {boolean} retryable    - true = show "Try Again", false = show "Back to overview"
+ * @property {string}  errorCode      - machine-readable code, e.g. "TIMEOUT"
+ * @property {boolean} retryable      - true = show "Try Again", false = show "Back to overview"
+ * @property {any}     [originalError] - the raw error for logging purposes
  */
 
 /**

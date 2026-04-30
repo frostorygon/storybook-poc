@@ -1,0 +1,18 @@
+import { Meta, Story, Canvas } from '@storybook/addon-docs/blocks';
+import * as SessionExpiredStories from './session-expired.stories.js';
+
+<Meta of={SessionExpiredStories} />
+
+# Session Expired Error Screen
+
+The \`session-expired-error-screen\` is a **Smart Component**. It represents an enterprise pattern where a domain-specific action (Authentication Redirect) is encapsulated inside the screen itself.
+
+Unlike generic errors which are mapped via fixtures in the Flow orchestrator, this component manages its own specialized logic, preventing the parent Flow from becoming a "God Component".
+
+<Canvas>
+  <Story of={SessionExpiredStories.Default} />
+</Canvas>
+
+## Behavior
+- Displays a Session Expired message.
+- The "Go to Login" button natively triggers an \`auth-redirect\` event, which in a real app would be hooked into the Authentication Router.

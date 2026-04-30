@@ -18,6 +18,9 @@ export default defineConfig({
       instances: [{ browser: 'chromium' }],
     },
 
+    // Load scoped custom element registry polyfill before component code
+    setupFiles: ['./src/vitest-setup.js'],
+
     // Include component tests alongside source files
     include: ['src/**/*.test.{js,ts}'],
 
@@ -25,8 +28,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
-      include: ['src/components/**'],
-      exclude: ['src/stories/**'],
+      include: ['src/components/**', 'src/screens/**', 'src/services/**', 'src/*.js'],
+      exclude: ['src/mocks/**', 'src/docs/**'],
       thresholds: {
         lines: 80,
         functions: 80,

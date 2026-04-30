@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import './holdcard-toggle-screen.js';
+import { HoldcardToggleScreen } from './holdcard-toggle-screen.js';
+
+customElements.define('holdcard-toggle-screen', HoldcardToggleScreen);
 
 function mount(html) {
   const container = document.createElement('div');

@@ -11,6 +11,12 @@ importers:
       '@lion/ui':
         specifier: ^0.16.1
         version: 0.16.1
+      '@open-wc/scoped-elements':
+        specifier: ^3.0.6
+        version: 3.0.6
+      '@webcomponents/scoped-custom-element-registry':
+        specifier: ^0.0.10
+        version: 0.0.10
       lit:
         specifier: ^3.3.2
         version: 3.3.2
@@ -794,6 +800,9 @@ packages:
   '@web/test-runner-core@0.13.4':
     resolution: {integrity: sha512-84E1025aUSjvZU1j17eCTwV7m5Zg3cZHErV3+CaJM9JPCesZwLraIa0ONIQ9w4KLgcDgJFw9UnJ0LbFf42h6tg==}
     engines: {node: '>=18.0.0'}
+
+  '@webcomponents/scoped-custom-element-registry@0.0.10':
+    resolution: {integrity: sha512-wP4LF28aysE2Pq3NQRNQxko7Q0vOOwcoOSMg8FFI4S6z76UuXkYIc5ndC31dJMwso1/vSteL75LW2CEKedAJbA==}
 
   '@webcontainer/env@1.1.1':
     resolution: {integrity: sha512-6aN99yL695Hi9SuIk1oC88l9o0gmxL1nGWWQ/kNy81HigJ0FoaoTXpytCj6ItzgyCEwA9kF1wixsTuv5cjsgng==}
@@ -2998,6 +3007,8 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  '@webcomponents/scoped-custom-element-registry@0.0.10': {}
 
   '@webcontainer/env@1.1.1': {}
 

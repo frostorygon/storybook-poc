@@ -1,3 +1,5 @@
+import '@webcomponents/scoped-custom-element-registry';
+
 /** @type { import('@storybook/web-components-vite').Preview } */
 const preview = {
   parameters: {

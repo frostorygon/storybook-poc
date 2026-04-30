@@ -16,11 +16,12 @@
   "type": "module",
   "dependencies": {
     "@lion/ui": "^0.16.1",
+    "@open-wc/scoped-elements": "^3.0.6",
+    "@webcomponents/scoped-custom-element-registry": "^0.0.10",
     "lit": "^3.3.2"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.1.2",
-    "@open-wc/testing": "^4.0.0",
     "@storybook/addon-a11y": "^10.3.5",
     "@storybook/addon-docs": "^10.3.5",
     "@storybook/addon-vitest": "^10.3.5",
