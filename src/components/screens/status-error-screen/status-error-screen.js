@@ -60,6 +60,14 @@ export class StatusErrorScreen extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    return template(this);
+    return template({
+      errorTitle: this.errorTitle,
+      errorMessage: this.errorMessage,
+      retryable: this.retryable,
+      retryLabel: this.retryLabel,
+      dismissLabel: this.dismissLabel,
+      onRetry: () => this._onRetry(),
+      onDismiss: () => this._onDismiss(),
+    });
   }
 }

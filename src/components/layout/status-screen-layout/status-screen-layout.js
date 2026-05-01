@@ -20,6 +20,6 @@ export class StatusScreenLayout extends LitElement {
   }
 
   render() {
-    return template(this);
+    return template();
   }
 }

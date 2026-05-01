@@ -1,5 +1,5 @@
 import { Meta, Source } from '@storybook/addon-docs/blocks';
-import { defaultActive, defaultOnHold, errorResponse, genericError, sessionExpiredError } from '../mocks/fixtures.js';
+import { activeCardResponse, heldCardResponse } from '../mocks/handlers/cardHandlers.js';
 
 <Meta title="Flows / API Fixtures" />
 
@@ -16,12 +16,12 @@ The Toggle screen relies on a GET request to fetch the initial status of the car
 ### Active Card
 **Simulated Endpoint:** `GET /api/v1/cards/{cardId}`
 
-<Source dark language="json" code={JSON.stringify(defaultActive, null, 2)} />
+<Source dark language="json" code={JSON.stringify(activeCardResponse, null, 2)} />
 
 ### On-Hold Card
 **Simulated Endpoint:** `GET /api/v1/cards/{cardId}`
 
-<Source dark language="json" code={JSON.stringify(defaultOnHold, null, 2)} />
+<Source dark language="json" code={JSON.stringify(heldCardResponse, null, 2)} />
 
 ---
 
@@ -42,8 +42,8 @@ The following objects are ingested by the Error Screen when backend requests fai
 
 ### Generic Failed Response
 
-<Source dark language="json" code={JSON.stringify(genericError, null, 2)} />
+<Source dark language="json" code={JSON.stringify({ errorCode: 'GENERIC_ERROR' }, null, 2)} />
 
 ### Session Expired (Auth Error)
 
-<Source dark language="json" code={JSON.stringify(sessionExpiredError, null, 2)} />
+<Source dark language="json" code={JSON.stringify({ errorCode: 'SESSION_EXPIRED' }, null, 2)} />

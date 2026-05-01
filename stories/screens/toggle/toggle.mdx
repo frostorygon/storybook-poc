@@ -1,0 +1,101 @@
+import { Meta, Canvas, Story } from '@storybook/addon-docs/blocks';
+import * as ToggleScreenStories from './toggle.stories.js';
+
+<Meta of={ToggleScreenStories} name="Docs" />
+
+# Toggle Screen
+
+**The primary entry screen for holding or unholding a card.**
+
+The `holdcard-toggle-screen` displays the current status of the customer's card (Active or On Hold) along with a contextually aware action button. It receives its data from the parent flow and delegates actions via events.
+
+---
+
+## Interactive Playground
+
+Test how the toggle screen behaves under different data states. Go to the "Toggle Screen -> Active Card" story in the sidebar to interact with the component controls and view the Actions/Interactions panel.
+
+---
+
+## Edge Cases & Variants
+
+Below are all the exported states of the screen. These serve as a reference for handling asynchronous behavior and edge cases.
+
+### 1. Active State
+
+The default state when the user lands with an active card.
+
+<Canvas>
+  <Story of={ToggleScreenStories.ActiveCard} />
+</Canvas>
+
+### 2. On Hold State
+
+If the card is already on hold, the action button switches to an "Unhold" operation.
+
+<Canvas>
+  <Story of={ToggleScreenStories.OnHoldCard} />
+</Canvas>
+
+### 3. Loading State
+
+When data is being fetched, the component renders a polite loading aria-status.
+
+<Canvas>
+  <Story of={ToggleScreenStories.LoadingState} />
+</Canvas>
+
+### 4. Error State
+
+If the initial data fetch fails, a localized error message is displayed.
+
+<Canvas>
+  <Story of={ToggleScreenStories.ErrorState} />
+</Canvas>
+
+### 5. Long Data Wrapping
+
+Validates that very long account names or masked numbers don't break the layout.
+
+<Canvas>
+  <Story of={ToggleScreenStories.LongAccountHolder} />
+</Canvas>
+
+---
+
+## Usage Example
+
+```js
+import { html, LitElement } from 'lit';
+import { HoldcardToggleScreen } from '@scope/holdcard-toggle-screen';
+
+class MyFeature extends LitElement {
+  static get scopedElements() {
+    return {
+      'holdcard-toggle-screen': HoldcardToggleScreen,
+    };
+  }
+
+  render() {
+    return html\`
+      <holdcard-toggle-screen
+        .cardStatus="\${this.card.status}"
+        .accountHolder="\${this.card.holderName}"
+        .maskedNumber="\${this.card.maskedpan}"
+        .isLoading="\${this.isFetching}"
+        .error="\${this.hasError}"
+        @action="\${this.handleToggleAction}">
+      </holdcard-toggle-screen>
+    \`;
+  }
+  
+  handleToggleAction(e) {
+    const { action } = e.detail; // 'hold' | 'unhold'
+    if (action === 'hold') {
+      this.api.holdCard();
+    } else {
+      this.api.unholdCard();
+    }
+  }
+}
+```

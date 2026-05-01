@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { HoldcardToggleScreen } from './holdcard-toggle-screen.js';
+import { HoldcardToggleScreen } from '../../../src/screens/toggle/holdcard-toggle-screen.js';
 
 customElements.define('holdcard-toggle-screen', HoldcardToggleScreen);
 

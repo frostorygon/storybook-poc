@@ -1,0 +1,84 @@
+import { Meta, Canvas, Story } from '@storybook/addon-docs/blocks';
+import * as LayoutStories from './status-screen-layout.stories.js';
+
+<Meta of={LayoutStories} />
+
+# Status Screen Layout
+
+**A structural shell that ensures all full-screen messages and errors follow the exact same visual rhythm and spacing.**
+
+The `status-screen-layout` component is a **slots-only** web component. It contains no javascript logic and manages no state. Its sole responsibility is placing the icon, title, description, custom content, and action buttons into a CSS Grid layout so that screens remain perfectly consistent across the application.
+
+---
+
+## Interactive Playground
+
+Use the controls below to inject arbitrary HTML into the various slots. Notice how the layout guarantees the spacing regardless of what elements you pass in.
+
+<Canvas>
+  <Story of={LayoutStories.Default} />
+</Canvas>
+
+---
+
+## When to use
+
+- **DO** use this as the foundation when building a new screen component (e.g., Success Screens, Error Screens, Loading Screens).
+- **DON'T** use this for small inline components, banners, or toasts. It is designed to take up the full viewport or modal height.
+
+---
+
+## Architecture: Slots Pattern
+
+This component utilizes the Web Components `<slot>` API. By assigning elements to the `slot="name"` attribute, they are projected into the correct structural areas of the layout.
+
+### Available Slots
+
+| Slot Name | Description | Required? |
+| :--- | :--- | :--- |
+| `icon` | The top illustration or icon. | Yes |
+| `title` | The main `<h2>` heading text. | Yes |
+| `description` | The explanatory body text. | Yes |
+| `custom-content` | Extra space between the text and actions (e.g. for a summary card). | No |
+| `actions` | The bottom button group. | Yes |
+
+---
+
+## Edge Cases & Variants
+
+### Adding Custom Content
+
+Sometimes an error or success screen needs to display specific data (like a receipt number or a summary card). You can project any HTML block into the `custom-content` slot, and it will be perfectly spaced between the description and the action buttons.
+
+<Canvas>
+  <Story of={LayoutStories.WithCustomContent} />
+</Canvas>
+
+---
+
+## Usage Example
+
+Because it relies on slots, you use standard HTML elements wrapping your content.
+
+```html
+<status-screen-layout>
+  <!-- 1. Top Icon -->
+  <div slot="icon" aria-hidden="true">
+    <svg>...</svg>
+  </div>
+
+  <!-- 2. Typography -->
+  <span slot="title">Payment Successful</span>
+  <span slot="description">Your transaction has been processed.</span>
+
+  <!-- 3. Custom Details -->
+  <div slot="custom-content" class="receipt-box">
+    Amount: $50.00
+  </div>
+
+  <!-- 4. Actions -->
+  <div slot="actions">
+    <lion-button>Return to Home</lion-button>
+  </div>
+</status-screen-layout>
+```

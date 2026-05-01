@@ -1,14 +1,23 @@
 import { html } from 'lit';
 
 /**
- * @param {import('./holdcard-toggle-screen.js').HoldcardToggleScreen} host
+ * Pure template function for the toggle screen.
+ * Every dependency is in the function signature — no hidden coupling to `this`.
+ *
+ * @param {object} props
+ * @param {import('../../types.js').CardStatus} props.cardStatus
+ * @param {string} [props.accountHolder]
+ * @param {string} [props.maskedNumber]
+ * @param {boolean} props.isLoading
+ * @param {boolean} props.error
+ * @param {(e: Event) => void} props.onAction
  */
-export function template(host) {
-  if (host.isLoading) {
+export function template({ cardStatus, accountHolder, maskedNumber, isLoading, error, onAction }) {
+  if (isLoading) {
     return html`<p role="status" aria-live="polite">Loading card details…</p>`;
   }
 
-  if (host.error) {
+  if (error) {
     return html`
       <p role="alert" style="color: var(--color-hold, red)">
         Failed to load card details. Please try again later.
@@ -16,8 +25,8 @@ export function template(host) {
     `;
   }
 
-  const isActive = host.cardStatus === 'active';
-  const maskedDisplay = host.maskedNumber ?? '**** **** **** ????';
+  const isActive = cardStatus === 'active';
+  const maskedDisplay = maskedNumber ?? '**** **** **** ????';
   const maskedLabel = `Card ending in ${maskedDisplay.slice(-4)}`;
 
   return html`
@@ -27,7 +36,7 @@ export function template(host) {
         aria-label="Card status: ${isActive ? 'Active' : 'On Hold'}">
         ${isActive ? 'Active' : 'On Hold'}
       </div>
-      <h2>${host.accountHolder ?? 'Customer'}</h2>
+      <h2>${accountHolder ?? 'Customer'}</h2>
       <p class="masked-number" aria-label="${maskedLabel}">${maskedDisplay}</p>
     </div>
 
@@ -37,7 +46,7 @@ export function template(host) {
         : 'Your card is currently on hold and cannot be used for transactions.'}
     </p>
 
-    <lion-button @click="${host._onAction}">
+    <lion-button @click="${onAction}">
       ${isActive ? 'Hold Card' : 'Unhold Card'}
     </lion-button>
   `;

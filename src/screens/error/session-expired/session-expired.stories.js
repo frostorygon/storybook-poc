@@ -8,4 +8,4 @@ export default {
   component: 'session-expired-error-screen',
 };
 
-export const Default = () => html\`<session-expired-error-screen></session-expired-error-screen>\`;
+export const Default = () => html`<session-expired-error-screen></session-expired-error-screen>`;

@@ -121,18 +121,31 @@ export class FeatureFlow extends ScopedElementsMixin(LitElement) {
       this._currentStep = 'error';
     } finally {
       this._isLoading = false;
+      this._moveFocusToContent();
     }
   }
 
   _handleRetry() {
     this._currentStep = 'toggle';
     this._errorContext = null;
+    this._moveFocusToContent();
   }
 
   _handleDismiss() {
     // In a real app, this would route back to the dashboard or dismiss a modal
     console.log('Flow dismissed');
     this._currentStep = 'toggle';
+    this._moveFocusToContent();
+  }
+
+  /** Move focus to the content container after a screen transition (a11y). */
+  async _moveFocusToContent() {
+    await this.updateComplete;
+    const content = this.shadowRoot?.querySelector('.content');
+    if (content instanceof HTMLElement) {
+      content.setAttribute('tabindex', '-1');
+      content.focus();
+    }
   }
 
   _renderSuccessScreen() {

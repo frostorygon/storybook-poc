@@ -1,6 +1,6 @@
 // @ts-check
 import { describe, it, expect } from 'vitest';
-import { AuthService } from './auth-service.js';
+import { AuthService } from '../../src/services/auth-service.js';
 
 describe('AuthService', () => {
   describe('_normalizeError', () => {

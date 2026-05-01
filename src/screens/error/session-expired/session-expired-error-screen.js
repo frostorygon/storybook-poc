@@ -32,6 +32,8 @@ export class SessionExpiredErrorScreen extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    return template(this);
+    return template({
+      onLoginRedirect: () => this._onLoginRedirect(),
+    });
   }
 }

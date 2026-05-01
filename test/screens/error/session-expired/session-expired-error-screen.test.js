@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { SessionExpiredErrorScreen } from './session-expired-error-screen.js';
+import { SessionExpiredErrorScreen } from '../../../../src/screens/error/session-expired/session-expired-error-screen.js';
 
 // Register locally for standalone testing — in production this is scoped via FeatureFlow
 customElements.define('session-expired-error-screen', SessionExpiredErrorScreen);
@@ -38,4 +38,3 @@ describe('SessionExpiredErrorScreen', () => {
     expect(fired).toBe(true);
   });
 });
-

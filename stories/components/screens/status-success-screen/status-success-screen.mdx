@@ -1,0 +1,86 @@
+import { Meta, Canvas, Story } from '@storybook/addon-docs/blocks';
+import * as SuccessScreenStories from './status-success-screen.stories.js';
+
+<Meta of={SuccessScreenStories} />
+
+# Status Success Screen
+
+**A reusable confirmation screen for successful operations.**
+
+The `status-success-screen` is a generic UI shell for displaying success confirmations. It ensures a consistent, positive visual layout across all features after a successful mutation (e.g., POST/PUT requests).
+
+---
+
+## Interactive Playground
+
+To interact with the component controls, navigate to the specific stories in the sidebar.
+
+---
+
+## When to use
+
+- **DO** use this after a destructive or major state change (e.g., blocking a card, submitting a transfer).
+- **DON'T** use this for minor background saves (use a toast or inline checkmark).
+- **DON'T** put complex secondary actions here; keep it to a simple dismissal/navigation flow.
+
+---
+
+## Edge Cases & Configurations
+
+Here are standard configurations developers can reference.
+
+### 1. Card Reactivated
+
+A standard confirmation with default labels.
+
+<Canvas>
+  <Story of={SuccessScreenStories.CardReactivated} />
+</Canvas>
+
+### 2. Custom Dismiss Label
+
+You can override the `dismissLabel` to provide clearer navigation context.
+
+<Canvas>
+  <Story of={SuccessScreenStories.CustomDismissLabel} />
+</Canvas>
+
+### 3. Handling Long Messages
+
+The component natively handles text wrapping and overflow for complex confirmations.
+
+<Canvas>
+  <Story of={SuccessScreenStories.LongMessage} />
+</Canvas>
+
+---
+
+## Usage Example
+
+```js
+import { html, LitElement } from 'lit';
+import { StatusSuccessScreen } from '@scope/status-success-screen';
+
+class MyFeature extends LitElement {
+  static get scopedElements() {
+    return {
+      'status-success-screen': StatusSuccessScreen,
+    };
+  }
+
+  render() {
+    return html\`
+      <status-success-screen
+        .successTitle="\${'Operation Successful'}"
+        .successMessage="\${'Your settings have been saved.'}"
+        .dismissLabel="\${'Return to Dashboard'}"
+        @dismiss="\${this.handleDismiss}">
+      </status-success-screen>
+    \`;
+  }
+  
+  handleDismiss() {
+    // Navigate user back
+  }
+}
+```

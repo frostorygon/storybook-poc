@@ -48,6 +48,11 @@ export class StatusSuccessScreen extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    return template(this);
+    return template({
+      successTitle: this.successTitle,
+      successMessage: this.successMessage,
+      dismissLabel: this.dismissLabel,
+      onDismiss: () => this._onDismiss(),
+    });
   }
 }

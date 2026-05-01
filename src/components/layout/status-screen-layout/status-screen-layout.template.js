@@ -1,9 +1,10 @@
 import { html } from 'lit';
 
 /**
- * @param {import('./status-screen-layout.js').StatusScreenLayout} _host
+ * Pure template function for the status screen layout.
+ * This layout component is slots-only — no props needed.
  */
-export function template(_host) {
+export function template() {
   return html`
     <div class="layout-container">
       <div class="icon-area" aria-hidden="true">

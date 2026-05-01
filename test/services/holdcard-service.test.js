@@ -1,6 +1,6 @@
 // @ts-check
 import { describe, it, expect } from 'vitest';
-import { HoldcardService } from './holdcard-service.js';
+import { HoldcardService } from '../../src/services/holdcard-service.js';
 
 describe('HoldcardService', () => {
   describe('_normalizeError', () => {

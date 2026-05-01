@@ -1,18 +1,18 @@
-
-
-/** @type { import('@storybook/web-components-vite').StorybookConfig } */
+/** @type { import('@web/storybook-framework-web-components').StorybookConfig } */
 const config = {
-  "stories": [
-    "../src/**/*.mdx",
-    "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"
+  stories: [
+    '../stories/**/*.mdx',
+    '../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)',
   ],
-  "addons": [
-    "@chromatic-com/storybook",
-    "@storybook/addon-vitest",
-    "@storybook/addon-a11y",
-    "@storybook/addon-docs",
-    "storybook-addon-mock"
+  addons: [
+    '@storybook/addon-a11y',
+    '@storybook/addon-docs',
+    '@storybook/addon-links',
+    '@web/storybook-addon-mocks',
   ],
-  "framework": "@storybook/web-components-vite"
+  framework: {
+    name: '@web/storybook-framework-web-components',
+    options: {},
+  },
 };
 export default config;

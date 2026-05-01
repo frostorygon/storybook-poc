@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import './feature-flow.js';
+import '../src/feature-flow.js';
+import { holdSuccessResponse, unholdSuccessResponse } from '../demo/mocks/scenarios.js';
 
 function createMockService({ holdError, unholdError } = {}) {
   return {
-    holdCard:   holdError   ? () => Promise.reject(holdError)   : () => Promise.resolve({ transactionType: 'held' }),
-    unholdCard: unholdError ? () => Promise.reject(unholdError) : () => Promise.resolve({ transactionType: 'unheld' }),
+    holdCard:   holdError   ? () => Promise.reject(holdError)   : () => Promise.resolve(holdSuccessResponse),
+    unholdCard: unholdError ? () => Promise.reject(unholdError) : () => Promise.resolve(unholdSuccessResponse),
   };
 }
 

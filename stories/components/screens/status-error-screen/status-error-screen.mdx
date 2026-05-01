@@ -1,0 +1,103 @@
+import { Meta, Canvas, Story } from '@storybook/addon-docs/blocks';
+import * as ErrorScreenStories from './status-error-screen.stories.js';
+
+<Meta of={ErrorScreenStories} />
+
+# Status Error Screen
+
+**A reusable error feedback screen designed to handle various failure states gracefully.**
+
+The `status-error-screen` is a generic UI shell for displaying error messages. It accepts flat properties so it is not coupled to any specific backend error shape. This allows consuming features to map their own API errors or validation failures into a consistent UI presentation.
+
+---
+
+## Interactive Playground
+
+Use the controls in the individual stories (under "Screens / Error Screen") to experiment with the component. You can modify the text, toggle the retry behavior, and observe how the button labels adapt. 
+
+**Pro Tip:** Click the **Actions** tab in the bottom panel to see the `retry` and `dismiss` events log when you click the buttons!
+
+---
+
+## When to use
+
+- **DO** use this component when an API request fails (e.g. 500 Server Error).
+- **DO** use this for unrecoverable flow errors (e.g. missing critical data).
+- **DON'T** use this for inline field validation (use form error messages instead).
+- **DON'T** use this when the user is simply offline (use an offline banner/toast).
+
+---
+
+## Edge Cases & Variants
+
+Below are common edge cases and configurations for the error screen. You can use these snippets as a basis for your own implementations.
+
+### 1. Network Timeout (Retryable)
+
+When an operation takes too long, provide a clear message and a way to try again.
+
+<Canvas>
+  <Story of={ErrorScreenStories.Timeout} />
+</Canvas>
+
+### 2. Session Expired (Non-Retryable)
+
+If the error cannot be retried (like an expired session), set `retryable: false`. The component will automatically switch to a single dismiss action.
+
+<Canvas>
+  <Story of={ErrorScreenStories.SessionExpired} />
+</Canvas>
+
+### 3. Custom Button Labels
+
+You can override the default labels for both the primary (retry) and secondary (dismiss) actions to better fit the context.
+
+<Canvas>
+  <Story of={ErrorScreenStories.CustomLabels} />
+</Canvas>
+
+### 4. Handling Long Text Overflow
+
+The component is designed to safely wrap long text. It will not break the layout on smaller screens.
+
+<Canvas>
+  <Story of={ErrorScreenStories.LongErrorText} />
+</Canvas>
+
+---
+
+## Usage Example
+
+```js
+import { html, LitElement } from 'lit';
+import { StatusErrorScreen } from '@scope/status-error-screen';
+
+class MyFeature extends LitElement {
+  static get scopedElements() {
+    return {
+      'status-error-screen': StatusErrorScreen,
+    };
+  }
+
+  render() {
+    return html\`
+      <status-error-screen
+        .errorTitle="\${'Failed to load data'}"
+        .errorMessage="\${'Please check your connection and try again.'}"
+        .retryable="\${true}"
+        .retryLabel="\${'Reload Data'}"
+        @retry="\${this.handleRetry}"
+        @dismiss="\${this.handleDismiss}">
+      </status-error-screen>
+    \`;
+  }
+  
+  handleRetry() {
+    // Re-fetch data
+  }
+  
+  handleDismiss() {
+    // Navigate away
+  }
+}
+```

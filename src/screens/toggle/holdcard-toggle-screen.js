@@ -54,6 +54,13 @@ export class HoldcardToggleScreen extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    return template(this);
+    return template({
+      cardStatus: this.cardStatus,
+      accountHolder: this.accountHolder,
+      maskedNumber: this.maskedNumber,
+      isLoading: this.isLoading,
+      error: this.error,
+      onAction: () => this._onAction(),
+    });
   }
 }

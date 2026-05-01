@@ -49,23 +49,37 @@ export default {
 };
 ```
 
-### 3. Template reads via `host.msgLit()`
+### 3. Template reads via `msgLit` prop
+
+The component's `render()` passes `this.msgLit` as a prop to the template:
 
 ```javascript
-export function template(host) {
+// holdcard-toggle-screen.js — render()
+render() {
+  return template({
+    cardStatus: this.cardStatus,
+    msgLit: (key) => this.msgLit(key),
+    onAction: () => this._onAction(),
+  });
+}
+```
+
+```javascript
+// holdcard-toggle-screen.template.js
+export function template({ cardStatus, msgLit, onAction }) {
   return html`
-    <h2>${host.msgLit('holdcard-toggle:title')}</h2>
-    <p>${host.msgLit('holdcard-toggle:description')}</p>
-    <lion-button @click="${host._onAction}">
-      ${host.cardStatus === 'active'
-        ? host.msgLit('holdcard-toggle:holdButton')
-        : host.msgLit('holdcard-toggle:unholdButton')}
+    <h2>${msgLit('holdcard-toggle:title')}</h2>
+    <p>${msgLit('holdcard-toggle:description')}</p>
+    <lion-button @click="${onAction}">
+      ${cardStatus === 'active'
+        ? msgLit('holdcard-toggle:holdButton')
+        : msgLit('holdcard-toggle:unholdButton')}
     </lion-button>
   `;
 }
 ```
 
-The `host.msgLit()` call resolves the namespace:key pair against the currently loaded locale. The template stays a pure function — it doesn't import the localization system directly.
+The template stays a pure function — it doesn't import the localization system directly.
 
 ---
 

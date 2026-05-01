@@ -1,0 +1,69 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Docs & Overview / Open-WC Alignment" />
+
+# Open-WC Alignment Guide
+
+This project follows [open-wc](https://open-wc.org/) recommendations for web component
+development. The full guide lives in
+[`docs/guidelines/12-open-wc-alignment.md`](https://github.com/user/repo/blob/main/docs/guidelines/12-open-wc-alignment.md)
+— this page summarizes the key points.
+
+---
+
+## ✅ What We Follow
+
+| Practice | How |
+|---|---|
+| **Buildless development** | `@web/storybook-builder` → `@web/dev-server`, native ES modules |
+| **Lit as base library** | All components extend `LitElement` |
+| **Scoped elements** | `@open-wc/scoped-elements` + polyfill, no global `define()` |
+| **Test side-effects** | Assert DOM output and events, not internal method stubs |
+| **`demo/` folder** | `demo/mocks/` extends the open-wc `demo/` convention for mock data |
+
+---
+
+## ⚠️ Gaps (POC Only — Adopt for Production)
+
+### Test Runner
+
+| This POC | Open-WC Standard |
+|---|---|
+| Vitest (browser mode) | [`@web/test-runner`](https://modern-web.dev/docs/test-runner/overview/) |
+| Manual `mount()` helper | [`fixture()`](https://open-wc.org/docs/testing/helpers/) from `@open-wc/testing` |
+
+Mock imports (`demo/mocks/scenarios.js`) stay identical regardless of runner.
+
+### Semantic DOM Diff
+
+Not used — add [`@open-wc/semantic-dom-diff`](https://open-wc.org/docs/testing/semantic-dom-diff/)
+for snapshot testing when migrating to `@web/test-runner`.
+
+### Accessibility Testing
+
+Storybook has `@storybook/addon-a11y` for visual checks. For unit tests, add
+[`chai-a11y-axe`](https://open-wc.org/docs/testing/chai-a11y-axe/):
+
+```js
+await expect(el).to.be.accessible();
+```
+
+### Linting
+
+This POC has no ESLint config. Production repos should include the org's `eslint-config-ow`
+which wraps [`eslint-plugin-lit-a11y`](https://open-wc.org/docs/linting/eslint-plugin-lit-a11y/overview/).
+
+---
+
+## 📚 Quick Links
+
+| Topic | Link |
+|---|---|
+| Getting Started | [open-wc.org/.../getting-started](https://open-wc.org/guides/developing-components/getting-started/) |
+| Going Buildless | [open-wc.org/.../going-buildless](https://open-wc.org/guides/developing-components/going-buildless/) |
+| Testing Helpers | [open-wc.org/docs/testing/helpers](https://open-wc.org/docs/testing/helpers/) |
+| Stubs & Mocking | [open-wc.org/.../testing/stubs](https://open-wc.org/guides/knowledge/testing/stubs/) |
+| Scoped Elements | [open-wc.org/docs/.../scoped-elements](https://open-wc.org/docs/development/scoped-elements/) |
+| Modern Web | [modern-web.dev](https://modern-web.dev/) |
+
+> **Full details:** See `docs/guidelines/12-open-wc-alignment.md` for migration steps, code examples, and rationale.

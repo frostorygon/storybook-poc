@@ -21,15 +21,15 @@ export default defineConfig({
     // Load scoped custom element registry polyfill before component code
     setupFiles: ['./src/vitest-setup.js'],
 
-    // Include component tests alongside source files
-    include: ['src/**/*.test.{js,ts}'],
+    // Tests live in the dedicated test/ folder (open-wc convention)
+    include: ['test/**/*.test.{js,ts}'],
 
     // Coverage via v8 (built into Node, no extra install)
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
       include: ['src/components/**', 'src/screens/**', 'src/services/**', 'src/*.js'],
-      exclude: ['src/mocks/**', 'src/docs/**'],
+      exclude: ['src/docs/**'],
       thresholds: {
         lines: 80,
         functions: 80,

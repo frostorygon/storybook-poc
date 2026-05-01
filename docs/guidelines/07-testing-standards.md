@@ -20,6 +20,21 @@ Without this, any component using `ScopedElementsMixin` will throw `importNode i
 
 ---
 
+## Registration in Tests
+
+Components do not register themselves — `ScopedElementsMixin` handles that in production. Tests that render a component standalone must import the class and call `customElements.define()`:
+
+```javascript
+import { describe, it, expect, beforeEach } from 'vitest';
+import { HoldcardToggleScreen } from './holdcard-toggle-screen.js';
+
+customElements.define('holdcard-toggle-screen', HoldcardToggleScreen);
+```
+
+This is the test's responsibility, not the component's.
+
+---
+
 ## Mounting Components
 
 Use a `mount()` helper that inserts HTML into the document and returns the element:
