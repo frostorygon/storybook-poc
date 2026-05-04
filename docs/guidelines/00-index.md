@@ -9,7 +9,7 @@ For project-level architecture decisions (folder rationale, mock architecture, b
 | # | Guideline | Summary |
 |---|-----------|---------|
 | 01 | [Folder Structure](./01-folder-structure.md) | Project layout, component file standard, naming conventions, colocation rules |
-| 02 | [Component Architecture](./02-component-architecture.md) | 3-layer model (Layout → Shell → Smart), self-contained screens, thin router |
+| 02 | [Component Architecture](./02-component-architecture.md) | 3-layer model (Layout → Shell → Smart), variant-driven screens, thin router |
 | 03 | [Template Patterns](./03-template-patterns.md) | Extracted `template(props)` functions, event handler forwarding, anti-patterns |
 | 04 | [State & Variables](./04-state-and-variables.md) | Public properties, internal state (`_` prefix), CustomEvent conventions |
 | 05 | [Styling](./05-styling.md) | Design tokens, Shadow DOM, `:host` patterns, `::part()` escape hatch |

@@ -162,7 +162,7 @@ The only exception is the **root orchestrator** (`feature-flow.js`) which calls 
 
 ### Mock data
 
-API fixtures live in `demo/mocks/api/` — they represent feature-level data states, not component-level concerns. Each self-contained screen owns its own display text; mock data is consumed by stories (via `parameters.mocks`) and tests (via direct imports), not piped through the orchestrator. See [08-services-mocking-data.md](./08-services-mocking-data.md) for the full mock architecture.
+API fixtures live in `demo/mocks/api/` — they represent feature-level data states, not component-level concerns. Each variant-driven screen owns its own display text internally (via render functions in the template); mock data is consumed by stories (via `parameters.mocks`) and tests (via direct imports), not piped through the orchestrator. See [08-services-mocking-data.md](./08-services-mocking-data.md) for the full mock architecture.
 
 ### When to skip files
 
