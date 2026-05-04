@@ -2,17 +2,26 @@ import { html } from 'lit';
 
 /**
  * Template functions for each error variant.
- * Each function receives explicit props — not the component instance.
+ * Each function receives explicit parameters — not the component instance.
  *
  * Naming follows guideline 03: `template` + VariantName.
- * When localization (msgLit) is added, pass it as a prop per guideline 03's
+ * When localization (msgLit) is added, pass it as a parameter per guideline 03's
  * "Translations in Templates" section.
  */
 
 /**
- * @param {object} props
- * @param {(e: Event) => void} props.onRetry
- * @param {(e: Event) => void} props.onDismiss
+ * @typedef {object} RetryableErrorParams
+ * @property {(e: Event) => void} onRetry - Called when the user clicks retry
+ * @property {(e: Event) => void} onDismiss - Called when the user clicks dismiss
+ */
+
+/**
+ * @typedef {object} SessionExpiredParams
+ * @property {(e: Event) => void} onAuthRedirect - Called when the user clicks "Go to Login"
+ */
+
+/**
+ * @param {RetryableErrorParams} params
  */
 export function templateSomethingWentWrong({ onRetry, onDismiss }) {
   return html`
@@ -29,9 +38,7 @@ export function templateSomethingWentWrong({ onRetry, onDismiss }) {
 }
 
 /**
- * @param {object} props
- * @param {(e: Event) => void} props.onRetry
- * @param {(e: Event) => void} props.onDismiss
+ * @param {RetryableErrorParams} params
  */
 export function templateTimeout({ onRetry, onDismiss }) {
   return html`
@@ -48,8 +55,7 @@ export function templateTimeout({ onRetry, onDismiss }) {
 }
 
 /**
- * @param {object} props
- * @param {(e: Event) => void} props.onAuthRedirect
+ * @param {SessionExpiredParams} params
  */
 export function templateSessionExpired({ onAuthRedirect }) {
   return html`

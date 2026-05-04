@@ -5,8 +5,12 @@ import { html } from 'lit';
  */
 
 /**
- * @param {object} props
- * @param {(e: Event) => void} props.onDismiss
+ * @typedef {object} SuccessParams
+ * @property {(e: Event) => void} onDismiss - Called when the user clicks dismiss
+ */
+
+/**
+ * @param {SuccessParams} params
  */
 export function templateHeld({ onDismiss }) {
   return html`
@@ -20,8 +24,7 @@ export function templateHeld({ onDismiss }) {
 }
 
 /**
- * @param {object} props
- * @param {(e: Event) => void} props.onDismiss
+ * @param {SuccessParams} params
  */
 export function templateUnheld({ onDismiss }) {
   return html`
