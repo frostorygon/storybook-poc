@@ -134,6 +134,75 @@ For full i18n details (namespaces, translation files, testing), see [09-accessib
 
 ---
 
+## Variant Templates
+
+When a component renders different UI based on a `type` prop (see [02-component-architecture.md — Variant-Driven Screens](./02-component-architecture.md#variant-driven-screens--thin-router)), export one template function per variant from the same template file.
+
+### Naming
+
+`template` + PascalCase variant name:
+
+| Variant | Function name |
+|---------|---------------|
+| `SomethingWentWrong` | `templateSomethingWentWrong` |
+| `Timeout` | `templateTimeout` |
+| `SessionExpired` | `templateSessionExpired` |
+
+### How it works
+
+```javascript
+// error-screen.template.js — one function per variant
+export function templateSomethingWentWrong({ onRetry, onDismiss }) {
+  return html`
+    <status-error-screen
+      .errorTitle=${"Something went wrong"}
+      @retry="${onRetry}"
+      @dismiss="${onDismiss}"
+    ></status-error-screen>
+  `;
+}
+
+export function templateTimeout({ onRetry, onDismiss }) {
+  return html`
+    <status-error-screen
+      .errorTitle=${'Request timed out'}
+      @retry="${onRetry}"
+      @dismiss="${onDismiss}"
+    ></status-error-screen>
+  `;
+}
+```
+
+```javascript
+// error-screen.js — render() is a clean switch
+render() {
+  switch (this.errorType) {
+    case 'Timeout':
+      return templateTimeout({
+        onRetry: () => this._onRetry(),
+        onDismiss: () => this._onDismiss(),
+      });
+    case 'SomethingWentWrong':
+    default:
+      return templateSomethingWentWrong({
+        onRetry: () => this._onRetry(),
+        onDismiss: () => this._onDismiss(),
+      });
+  }
+}
+```
+
+### When to use variant templates vs. a single `template()`
+
+| Situation | Use |
+|-----------|-----|
+| One render path, same structure | Single `template({ ... })` |
+| Multiple render paths driven by a type prop | `templateVariantName({ ... })` per variant |
+
+All other rules still apply — explicit props, no God Props, no side effects, handlers forwarded from the component.
+
+---
+
 ## Anti-Patterns
 
 ### The "Smart Template"
