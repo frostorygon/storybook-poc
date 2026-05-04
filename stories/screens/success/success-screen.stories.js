@@ -9,6 +9,7 @@
 
 import { fn, expect } from 'storybook/test';
 import { SuccessScreen } from '../../../src/screens/success/success-screen.js';
+import { withPhoneFrame } from '../../../.storybook/decorators/phone-frame.js';
 
 if (!customElements.get('success-screen')) {
   customElements.define('success-screen', SuccessScreen);
@@ -33,6 +34,7 @@ function getContent(canvasElement) {
 export default {
   title: 'Screens / Success',
   component: 'success-screen',
+  decorators: [withPhoneFrame],
 
   argTypes: {
     successType: {

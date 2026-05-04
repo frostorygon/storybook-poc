@@ -10,6 +10,7 @@
 
 import { fn, expect } from 'storybook/test';
 import { ErrorScreen } from '../../../src/screens/error/error-screen.js';
+import { withPhoneFrame } from '../../../.storybook/decorators/phone-frame.js';
 
 if (!customElements.get('error-screen')) {
   customElements.define('error-screen', ErrorScreen);
@@ -42,6 +43,7 @@ function getContent(canvasElement) {
 export default {
   title: 'Screens / Error',
   component: 'error-screen',
+  decorators: [withPhoneFrame],
 
   argTypes: {
     errorType: {
