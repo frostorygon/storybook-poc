@@ -12,9 +12,7 @@ import { styles } from './success-screen.styles.js';
 /**
  * success-screen
  *
- * Single screen component that handles all success variants via the
- * `successType` property. Each variant has its own render function
- * in the template file.
+ * Single screen component for all success variants.
  *
  * @fires {CustomEvent} dismiss - when the user dismisses the success feedback
  */
@@ -41,17 +39,35 @@ export class SuccessScreen extends ScopedElementsMixin(LitElement) {
     this.successType = 'Held';
   }
 
+  // ── Event handlers ─────────────────────────────────────────────
+
   _onDismiss() {
     this.dispatchEvent(new CustomEvent('dismiss', { bubbles: true, composed: true }));
   }
 
+  // ── Private render methods (param assembly) ────────────────────
+
+  _renderHeld() {
+    return renderHeld({
+      onDismiss: () => this._onDismiss(),
+    });
+  }
+
+  _renderUnheld() {
+    return renderUnheld({
+      onDismiss: () => this._onDismiss(),
+    });
+  }
+
+  // ── Render (routing only) ──────────────────────────────────────
+
   render() {
     switch (this.successType) {
       case 'Unheld':
-        return renderUnheld(this);
+        return this._renderUnheld();
       case 'Held':
       default:
-        return renderHeld(this);
+        return this._renderHeld();
     }
   }
 }

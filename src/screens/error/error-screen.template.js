@@ -2,11 +2,18 @@ import { html } from 'lit';
 
 /**
  * Render functions for each error variant.
- * Each function receives the host component and wires only the handlers it needs.
+ * Each function receives explicit props — not the component instance.
+ *
+ * When localization (msgLit) is added, these will switch to receiving
+ * the component context (ctx) like the account-closure pattern.
  */
 
-/** @param {import('./error-screen.js').ErrorScreen} host */
-export function renderSomethingWentWrong(host) {
+/**
+ * @param {object} props
+ * @param {(e: Event) => void} props.onRetry
+ * @param {(e: Event) => void} props.onDismiss
+ */
+export function renderSomethingWentWrong({ onRetry, onDismiss }) {
   return html`
     <status-error-screen
       .errorTitle=${"Something went wrong"}
@@ -14,14 +21,18 @@ export function renderSomethingWentWrong(host) {
       ?retryable=${true}
       .retryLabel=${'Try Again'}
       .dismissLabel=${'Back to overview'}
-      @retry="${() => host._onRetry()}"
-      @dismiss="${() => host._onDismiss()}"
+      @retry="${onRetry}"
+      @dismiss="${onDismiss}"
     ></status-error-screen>
   `;
 }
 
-/** @param {import('./error-screen.js').ErrorScreen} host */
-export function renderTimeout(host) {
+/**
+ * @param {object} props
+ * @param {(e: Event) => void} props.onRetry
+ * @param {(e: Event) => void} props.onDismiss
+ */
+export function renderTimeout({ onRetry, onDismiss }) {
   return html`
     <status-error-screen
       .errorTitle=${'Request timed out'}
@@ -29,20 +40,23 @@ export function renderTimeout(host) {
       ?retryable=${true}
       .retryLabel=${'Try Again'}
       .dismissLabel=${'Back to overview'}
-      @retry="${() => host._onRetry()}"
-      @dismiss="${() => host._onDismiss()}"
+      @retry="${onRetry}"
+      @dismiss="${onDismiss}"
     ></status-error-screen>
   `;
 }
 
-/** @param {import('./error-screen.js').ErrorScreen} host */
-export function renderSessionExpired(host) {
+/**
+ * @param {object} props
+ * @param {(e: Event) => void} props.onAuthRedirect
+ */
+export function renderSessionExpired({ onAuthRedirect }) {
   return html`
     <status-error-screen>
       <span slot="title">Session expired</span>
       <span slot="description">Your session has expired. Please log in again to continue.</span>
 
-      <lion-button slot="actions" @click="${() => host._onAuthRedirect()}">
+      <lion-button slot="actions" @click="${onAuthRedirect}">
         Go to Login
       </lion-button>
     </status-error-screen>

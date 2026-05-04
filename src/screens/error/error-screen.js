@@ -49,6 +49,8 @@ export class ErrorScreen extends ScopedElementsMixin(LitElement) {
     this.errorType = 'SomethingWentWrong';
   }
 
+  // ── Event handlers ─────────────────────────────────────────────
+
   _onRetry() {
     this.dispatchEvent(new CustomEvent('retry', { bubbles: true, composed: true }));
   }
@@ -62,15 +64,39 @@ export class ErrorScreen extends ScopedElementsMixin(LitElement) {
     this.dispatchEvent(new CustomEvent('auth-redirect', { bubbles: true, composed: true }));
   }
 
+  // ── Private render methods (param assembly) ────────────────────
+
+  _renderSomethingWentWrong() {
+    return renderSomethingWentWrong({
+      onRetry: () => this._onRetry(),
+      onDismiss: () => this._onDismiss(),
+    });
+  }
+
+  _renderTimeout() {
+    return renderTimeout({
+      onRetry: () => this._onRetry(),
+      onDismiss: () => this._onDismiss(),
+    });
+  }
+
+  _renderSessionExpired() {
+    return renderSessionExpired({
+      onAuthRedirect: () => this._onAuthRedirect(),
+    });
+  }
+
+  // ── Render (routing only) ──────────────────────────────────────
+
   render() {
     switch (this.errorType) {
       case 'Timeout':
-        return renderTimeout(this);
+        return this._renderTimeout();
       case 'SessionExpired':
-        return renderSessionExpired(this);
+        return this._renderSessionExpired();
       case 'SomethingWentWrong':
       default:
-        return renderSomethingWentWrong(this);
+        return this._renderSomethingWentWrong();
     }
   }
 }
