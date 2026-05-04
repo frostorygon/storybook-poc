@@ -15,7 +15,7 @@
 
 const PHONE_STYLES = `
   .phone-frame {
-    width: 375px;
+    width: 414px;
     min-height: 667px;
     margin: 0 auto;
     border-radius: 40px;
@@ -106,7 +106,13 @@ const PHONE_STYLES = `
   .phone-content {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     background: #ffffff;
+  }
+
+  .phone-content > * {
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   /* ── Bottom Bar (home indicator) ─────────────────────────────── */
