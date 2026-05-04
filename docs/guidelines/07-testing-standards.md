@@ -22,16 +22,12 @@ Without this, any component using `ScopedElementsMixin` will throw `importNode i
 
 ## Registration in Tests
 
-Components do not register themselves — `ScopedElementsMixin` handles that in production. Tests that render a component standalone must import the class and call `customElements.define()`:
+Components do not self-register (see [01-folder-structure.md](./01-folder-structure.md#registration)). Tests that render a component standalone must call `customElements.define()` at the top of the file:
 
 ```javascript
-import { describe, it, expect, beforeEach } from 'vitest';
 import { HoldcardToggleScreen } from './holdcard-toggle-screen.js';
-
 customElements.define('holdcard-toggle-screen', HoldcardToggleScreen);
 ```
-
-This is the test's responsibility, not the component's.
 
 ---
 
@@ -56,7 +52,7 @@ beforeEach(() => { document.body.innerHTML = ''; });
 
 Always `await el.updateComplete` after mounting or mutating properties before asserting DOM state.
 
-**Why not `@open-wc/testing` `fixture()`?** It imports `__web-dev-server__web-socket.js` which doesn't exist in the Vite environment. The `mount()` helper is simpler and fully compatible.
+**Why not `@open-wc/testing` `fixture()`?** This POC uses Vitest for faster iteration and a familiar API. The org standard is `@web/test-runner` + `@open-wc/testing` `fixture()`. See `ARCHITECTURE.md` for the migration path. The `mount()` helper here is a lightweight stand-in that demonstrates the same test patterns.
 
 ---
 

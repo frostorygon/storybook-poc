@@ -36,11 +36,14 @@ Shared tokens live in `src/tokens.js` and are imported into component style file
 // tokens.js
 export const colorTokens = css`
   :host {
-    --color-brand:   #ff6200;
-    --color-error:   #d32f2f;
-    --color-active:  #2e7d32;
-    --color-bg:      #f5f5f5;
-    --spacing-md:    16px;
+    --color-brand:      #ff6200;
+    --color-active:     #2e7d32;
+    --color-active-bg:  #e8f5e9;
+    --color-hold:       #c62828;
+    --color-hold-bg:    #ffebee;
+    --color-text-muted: #666666;
+    --color-surface:    #ffffff;
+    --color-bg:         #f5f5f5;
   }
 `;
 ```

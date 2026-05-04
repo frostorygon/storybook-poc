@@ -110,7 +110,7 @@ The template never "knows" about the parent. It just calls the handler it receiv
 
 ## Translations in Templates
 
-When a component uses `LocalizeMixin`, pass `msgLit` as a prop:
+When a component uses `LocalizeMixin`, pass `msgLit` as a template prop — the template calls it but never imports the localization system directly.
 
 ```javascript
 // component
@@ -121,59 +121,16 @@ render() {
     onAction: () => this._onAction(),
   });
 }
-```
 
-```javascript
 // template
 export function template({ cardStatus, msgLit, onAction }) {
   return html`
     <h2>${msgLit('holdcard-toggle:title')}</h2>
-    <lion-button @click="${onAction}">
-      ${cardStatus === 'active'
-        ? msgLit('holdcard-toggle:holdButton')
-        : msgLit('holdcard-toggle:unholdButton')}
-    </lion-button>
   `;
 }
 ```
 
-**Rule:** The template calls `msgLit(key)` but does not import `@lion/ui/localize.js` or manage the locale. That's the component/mixin's job.
-
-### Translation file structure
-
-Each component that has user-facing strings gets a `translations/` folder:
-
-```
-holdcard-toggle-screen/
-├── holdcard-toggle-screen.js
-├── holdcard-toggle-screen.template.js
-├── holdcard-toggle-screen.styles.js
-└── translations/
-    ├── en-GB.js
-    └── nl-NL.js
-```
-
-### Translation key naming
-
-Keys are **flat** and **semantic**. The namespace already provides scope — don't repeat context in the key name.
-
-```javascript
-// ✅ GOOD — flat, semantic keys
-export default {
-  title: 'Session expired',
-  description: 'Your session has expired. Please log in again to continue.',
-  loginButton: 'Go to Login',
-};
-
-// ❌ BAD — redundant context in key names
-export default {
-  'session-expired-error.title': 'Session expired',
-  'session-expired-error.description.text': 'Your session has expired...',
-  'session-expired-error.actions.login-button.label': 'Go to Login',
-};
-```
-
-The namespace does the scoping: `msgLit('session-expired:title')` is already unambiguous.
+For full i18n details (namespaces, translation files, testing), see [09-accessibility-and-i18n.md](./09-accessibility-and-i18n.md).
 
 ---
 

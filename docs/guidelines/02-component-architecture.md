@@ -59,7 +59,7 @@ Injects domain logic into a Shell. This is where API calls, redirects, and busin
 
 **Rules:**
 - Owns the domain logic. The Shell stays dumb.
-- Receives services via dependency injection (properties), not global imports.
+- Receives services via dependency injection (properties), not global imports. See [08-services-mocking-data.md](./08-services-mocking-data.md).
 - Communicates upward exclusively via Custom Events.
 
 ---

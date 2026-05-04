@@ -11,7 +11,7 @@ Storybook is not a developer toy — it's the primary interface for four distinc
 | **Frontend Engineer** | Interactive playground with controls. Component API docs. Copy-pasteable usage. |
 | **QA / Tester** | Every visual state as a static story target for screenshot regression. |
 
-The `introduction.mdx` navigation table routes each audience to their entry point. Update it when adding new sections.
+The `introduction.mdx` navigation table routes each audience to their entry point.
 
 ---
 
@@ -60,7 +60,7 @@ import { html } from 'lit';
 import { fn, expect, within, userEvent } from 'storybook/test';
 import { MyComponent } from '../path/to/my-component.js';
 
-// Register standalone — the component does NOT self-register
+// Register standalone — components do not self-register (see 01-folder-structure.md)
 customElements.define('my-component', MyComponent);
 
 export default {

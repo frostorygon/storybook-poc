@@ -69,10 +69,6 @@ The core thesis: **define API mocks once, use them in both Storybook and tests.*
 ```
 demo/mocks/
 ├── api/cards/          ← Raw JSON payloads (one file per scenario)
-│   ├── active.js           GET /api/v1/cards/:cardId (active card)
-│   ├── on-hold.js          GET /api/v1/cards/:cardId (held card)
-│   ├── hold/ok.js          POST /api/v1/cards/:cardId/hold (success)
-│   └── unhold/ok.js        POST /api/v1/cards/:cardId/unhold (success)
 ├── mocks.js            ← Registry mapping endpoint paths → named scenarios
 └── scenarios.js        ← @web/mocks handlers assembled from registry
          ↓                          ↓
@@ -80,69 +76,13 @@ demo/mocks/
     (Storybook)                (Vitest / @web/test-runner)
 ```
 
-### How it works
-
-1. **Response data** is defined in `demo/mocks/api/` files — plain JS objects
-2. **`mocks.js`** maps endpoint URLs to named scenarios (ok, onHold, etc.)
-3. **`scenarios.js`** uses `@web/mocks/http.js` to create handler objects and re-exports
-   both handlers (for `parameters.mocks`) and raw response data (for test assertions)
-4. **Stories** import handlers: `import { getCard, holdCard } from '../demo/mocks/scenarios.js'`
+1. **Response data** lives in `demo/mocks/api/` — plain JS objects
+2. **`mocks.js`** maps endpoint URLs to named scenarios
+3. **`scenarios.js`** creates `@web/mocks` handlers and re-exports both handlers and raw data
+4. **Stories** import handlers: `import { getCard } from '../demo/mocks/scenarios.js'`
 5. **Tests** import the same file: `import { holdSuccessResponse } from '../demo/mocks/scenarios.js'`
 
-### Error scenarios
-
-Error responses (500, 401, 504) are defined inline in `scenarios.js` because they're
-trivial one-liners. Success response data is separated into `api/` files because tests
-need to assert against the exact payloads.
-
-### Naming Conventions
-
-#### Handler exports (in `scenarios.js`)
-
-Pattern: **`{method}{Resource}{Scenario}`** — camelCase, verb-first.
-
-| Export | Method | Resource | Scenario |
-|--------|--------|----------|----------|
-| `getCard` | get | Card | *(happy path — no suffix)* |
-| `getCardOnHold` | get | Card | OnHold |
-| `holdCard` | hold (POST) | Card | *(happy path)* |
-| `holdCardGenericError` | hold (POST) | Card | GenericError |
-| `holdCardTimeout` | hold (POST) | Card | Timeout |
-| `holdCardSessionExpired` | hold (POST) | Card | SessionExpired |
-
-**Rules:**
-- Happy-path handlers omit the scenario suffix: `getCard`, not `getCardOk`
-- Error handlers append the error type: `holdCardTimeout`
-- The method prefix matches the business action, not always the HTTP verb (`holdCard` = POST)
-
-#### Response data exports (in `scenarios.js`)
-
-Pattern: **`{scenario}{Resource}Response`** — camelCase, noun-ending.
-
-| Export | Scenario | Resource |
-|--------|----------|----------|
-| `activeCardResponse` | active | Card |
-| `onHoldCardResponse` | onHold | Card |
-| `holdSuccessResponse` | holdSuccess | *(implied)* |
-| `unholdSuccessResponse` | unholdSuccess | *(implied)* |
-
-#### API response files (in `demo/mocks/api/`)
-
-Pattern: **`{domain}/{scenario}.js`** — kebab-case, one file per scenario.
-
-```
-api/
-└── cards/
-    ├── active.js        ← default/happy state
-    ├── on-hold.js       ← alternative state
-    ├── hold/ok.js       ← action success
-    └── unhold/ok.js     ← action success
-```
-
-**Rules:**
-- Use `ok.js` for success responses to action endpoints (POST/PUT/DELETE)
-- Use descriptive state names for GET responses (`active.js`, `on-hold.js`)
-- Group by resource domain (`cards/`), then by action (`hold/`, `unhold/`)
+For naming conventions, handler patterns, and step-by-step instructions for adding new endpoints, see [08-services-mocking-data.md](./docs/guidelines/08-services-mocking-data.md).
 
 ---
 
@@ -221,3 +161,40 @@ Migration steps:
    ```js
    import { getTransaction } from '../demo/mocks/scenarios.js';
    ```
+
+---
+
+## Open-WC Alignment
+
+This project is built on [open-wc](https://open-wc.org/) recommendations. The following tracks what we follow and what we consciously trade off.
+
+### What We Follow
+
+| Principle | How |
+|-----------|-----|
+| **Buildless development** | `@web/storybook-builder` runs `@web/dev-server` — no Webpack/Vite bundling during dev |
+| **Lit as base library** | All components extend `LitElement` |
+| **Scoped custom element registry** | `@open-wc/scoped-elements` — no global `customElements.define()` collisions |
+| **Side-effects over stubs** | Tests verify DOM output and fired events, not internal method calls |
+| **`demo/` folder convention** | Extended with `demo/mocks/` for the centralized mock layer |
+
+### Conscious Trade-offs
+
+| Area | This project | Open-WC standard | Why |
+|------|-------------|------------------|-----|
+| Test runner | Vitest (browser mode) | `@web/test-runner` | Proves mock architecture is runner-agnostic. See Tooling Alignment above for migration steps. |
+| Assertions | Vitest `expect` | `@open-wc/testing` (Chai) | Same reason — familiarity + speed for the POC |
+| Fixture helper | Manual `mount()` | `fixture()` from `@open-wc/testing` | `fixture()` auto-cleans and awaits `updateComplete` — recommended for production |
+| Semantic DOM diff | Not used | `@open-wc/semantic-dom-diff` | Add when migrating to `@web/test-runner` |
+| a11y assertions | Storybook addon only | `chai-a11y-axe` in tests | Add when migrating to `@web/test-runner` |
+| ESLint | Not configured | `eslint-plugin-lit-a11y` | Org has `eslint-config-ow` — include in production repos |
+
+### Key Links
+
+| Topic | Link |
+|-------|------|
+| Getting Started | [open-wc.org/guides/.../getting-started](https://open-wc.org/guides/developing-components/getting-started/) |
+| Going Buildless | [open-wc.org/guides/.../going-buildless](https://open-wc.org/guides/developing-components/going-buildless/) |
+| Testing Guide | [open-wc.org/guides/.../testing](https://open-wc.org/guides/developing-components/testing/) |
+| Scoped Elements | [open-wc.org/docs/.../scoped-elements](https://open-wc.org/docs/development/scoped-elements/) |
+| Modern Web | [modern-web.dev](https://modern-web.dev/) |

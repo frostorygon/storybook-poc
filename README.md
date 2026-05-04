@@ -28,14 +28,14 @@ src/
 └── types.js            # Shared JSDoc typedefs
 ```
 
-See `docs/guidelines/` for the full documentation suite (12 guidelines).
+See `docs/guidelines/` for the full documentation suite ([9 guidelines](docs/guidelines/00-index.md)).
 
 ## Getting Started
 
 ```bash
 pnpm install
 pnpm storybook          # dev server on localhost:6006
-pnpm test               # vitest (22+ tests, Playwright browser mode)
+pnpm test               # vitest (26 tests, Playwright browser mode)
 pnpm build-storybook    # static build → storybook-static/
 ```
 
@@ -43,18 +43,15 @@ pnpm build-storybook    # static build → storybook-static/
 
 | # | Guideline | Summary |
 |---|-----------|---------|
-| 01 | Folder Structure | 7-file standard, colocation, naming |
+| 01 | Folder Structure | Project layout, component file standard, naming |
 | 02 | Component Architecture | 3-layer model, Fixture vs Smart Component |
 | 03 | Template Patterns | Extracted `template(props)`, pure functions, no `this` |
 | 04 | State & Variables | Props, state, events, naming conventions |
 | 05 | Styling | Tokens, Shadow DOM, `:host`, `::part()` |
-| 06 | Storybook Standards | Audiences, story patterns, mock service injection |
-| 07 | Testing Standards | Vitest + Playwright, mount helper, service tests |
-| 08 | Services & Data | DI, error normalization, bounded contexts |
-| 09 | Accessibility | ARIA, focus management, color contrast |
-| 10 | Internationalization | `LocalizeMixin`, namespaces, translation files |
-| 11 | Mocking Strategy | MSW v2, one file per API domain, handler naming |
-| 12 | Open-WC Alignment | What we follow, conscious trade-offs, migration path |
+| 06 | Storybook Standards | Audiences, CSF3 templates, Controls, Interactions |
+| 07 | Testing Standards | Vitest + Playwright, mount helper, component/service tests |
+| 08 | Services, Mocking & Data | DI, error normalization, `@web/mocks` architecture |
+| 09 | Accessibility & i18n | WCAG AA, focus management, `LocalizeMixin`, translations |
 
 ## References
 

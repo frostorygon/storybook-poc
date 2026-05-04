@@ -1,46 +1,74 @@
 # Folder Structure & File Separation
 
-Every component lives in its own directory. Tests, stories, docs, styles, and templates are colocated — not scattered across global folders. When you delete a component directory, nothing is left behind.
+Every component lives in its own directory. Styles and templates are colocated — tests and stories live in parallel root directories that mirror the `src/` structure. When you delete a component directory and its corresponding test/story paths, nothing is left behind.
 
-## Directory Layout
+## Project Layout
 
 ```
-src/
-├── components/              # Reusable, domain-agnostic UI
-│   ├── layout/              # Structural atoms (grids, slots, no logic)
-│   │   └── status-screen-layout/
-│   ├── screens/             # Configurable shells (error, success)
-│   │   ├── status-error-screen/
-│   │   └── status-success-screen/
-│   └── ui/                  # General UI elements (buttons, modals, inputs)
-│       ├── custom-button/
-│       └── custom-modal/
-├── screens/                 # Domain-specific "smart" components
-│   ├── toggle/              # holdcard-toggle-screen
-│   └── error/
-│       └── session-expired/ # session-expired-error-screen
-├── services/                # API clients, data normalization
-│   ├── holdcard-service.js
-│   └── auth-service.js
-├── mocks/                   # Feature-level test fixtures
-│   └── fixtures.js
-├── docs/                    # Storybook MDX pages
-├── feature-flow.js          # Root orchestrator (class + define)
-├── tokens.js                # Design tokens (CSS custom properties)
-└── types.js                 # Shared JSDoc typedefs
+storybook-poc/
+├── .storybook/              Storybook configuration
+├── demo/
+│   └── mocks/               API mock layer (shared by stories + tests)
+│       ├── api/             Response payloads (one file per endpoint+scenario)
+│       ├── mocks.js         Registry: endpoint paths → named scenarios
+│       └── scenarios.js     @web/mocks handlers — single source of truth
+├── docs/
+│   └── guidelines/          This documentation suite
+├── src/                     Component source code (ships to production)
+│   ├── components/          Reusable, domain-agnostic UI
+│   │   ├── layout/          Structural atoms (grids, slots, no logic)
+│   │   │   └── status-screen-layout/
+│   │   └── screens/         Configurable shells (error, success)
+│   │       ├── status-error-screen/
+│   │       └── status-success-screen/
+│   ├── screens/             Domain-specific "smart" components
+│   │   ├── toggle/          holdcard-toggle-screen
+│   │   └── error/
+│   │       └── session-expired/
+│   ├── services/            API clients, data normalization
+│   │   ├── holdcard-service.js
+│   │   └── auth-service.js
+│   ├── feature-flow.js      Root orchestrator (entry point)
+│   ├── feature-flow.styles.js
+│   ├── tokens.js            Design tokens (CSS custom properties)
+│   ├── types.js             Shared JSDoc typedefs
+│   └── declarations.d.ts    Custom element type declarations (IDE support)
+├── stories/                 Storybook stories + MDX docs
+│   ├── screens/
+│   │   └── toggle/
+│   ├── feature-flow.stories.js
+│   ├── introduction.mdx
+│   ├── overview.mdx
+│   └── api-fixtures.mdx
+├── test/                    Automated tests (mirrors src/ structure)
+│   ├── screens/
+│   │   ├── toggle/
+│   │   └── error/session-expired/
+│   ├── services/
+│   └── feature-flow.test.js
+├── vitest.config.js
+└── package.json
 ```
 
-### Categorizing Shared Components (`src/components/`)
+### Why `src/`, `test/`, `stories/`, and `demo/` are separate
 
-When you promote a component to the shared `components/` directory, **do not dump it at the root**. Group it by category so the folder doesn't become a mess as the project scales.
+| Folder | Purpose | Ships to prod? |
+|--------|---------|----------------|
+| `src/` | Component source code — what gets bundled and deployed | ✅ Yes |
+| `demo/mocks/` | API mock data + handlers — simulates the backend | ❌ No |
+| `stories/` | Storybook stories + MDX docs — visual documentation | ❌ No |
+| `test/` | Automated tests — verification that components work correctly | ❌ No |
 
-Best practice categories:
+**Key principle:** `src/` contains only shippable code. Build tooling (rollup) points at `src/` and never has to filter out `*.test.js` or `*.stories.js`. This follows the [open-wc](https://open-wc.org/) recommendations and the org template convention.
+
+### Categorizing shared components (`src/components/`)
+
+When you promote a component to the shared `components/` directory, **do not dump it at the root**. Group it by category so the folder stays navigable as the project scales.
+
 - `layout/` — Structural atoms (grids, layout containers)
 - `screens/` — Configurable shells (error screen, success screen)
-- `ui/` (or `elements/`) — General interactive elements (custom buttons, modals, badges, tooltips)
+- `ui/` (or `elements/`) — General interactive elements (buttons, modals, badges, tooltips)
 - `forms/` — Input fields, dropdowns, checkboxes
-
-**Example:** A reusable modal gets its own folder at `src/components/ui/custom-modal/` and follows the 7-file standard (`index.js`, `.styles.js`, `.template.js`, etc.).
 
 ### Why `components/` and `screens/` are separate
 
@@ -49,11 +77,11 @@ Best practice categories:
 
 ### Why `services/` breaks colocation
 
-Services are the one intentional exception to colocation. A service like `HoldcardService` is consumed by multiple orchestrators and screens. Colocating it inside one consumer would create a false ownership signal. See [07-services-and-data.md](./07-services-and-data.md) for the full rationale.
+Services are the one intentional exception to colocation. A service like `HoldcardService` is consumed by multiple orchestrators and screens. Colocating it inside one consumer would create a false ownership signal. See [08-services-mocking-data.md](./08-services-mocking-data.md) for the full rationale.
 
-### Why `feature-flow.*` lives at root
+### Why `feature-flow.*` lives at `src/` root
 
-The root orchestrator (`feature-flow.js`, `.stories.js`, `.styles.js`, `.test.js`) sits directly in `src/` rather than inside its own subdirectory. This is intentional — it's the entry point of the feature, equivalent to `App.js` in a React project. The 7-file directory standard applies to reusable *components*, not the root orchestrator. Moving it into a subdirectory would add indirection without value.
+The root orchestrator (`feature-flow.js` + `feature-flow.styles.js`) sits directly in `src/` rather than inside its own subdirectory. This is intentional — it's the entry point of the feature, equivalent to `App.js` in a React project. Its corresponding story lives at `stories/feature-flow.stories.js` and its test at `test/feature-flow.test.js`. The component file standard (below) applies to reusable *components*, not the root orchestrator.
 
 ---
 
@@ -79,7 +107,7 @@ Is it more than ~20 lines of template + styles?
   └── YES → Does more than one screen/flow use it?
               │
               ├── YES → Extract to src/components/
-              │         (follows the full 7-file standard)
+              │         (follows the component file standard)
               │
               └── NO → Colocate inside the screen's directory:
                         screens/toggle/card-preview/
@@ -109,31 +137,36 @@ If most items in `src/components/` have exactly one consumer, the directory has 
 
 ## The Component File Standard
 
-Every component directory contains the following files. Each file has exactly one job:
+Every component directory in `src/` contains the following files. Each file has exactly one job:
 
 | File | Purpose | Can you skip it? |
 |------|---------|------------------|
 | `index.js` | Public barrel export. Consumers import from here. | Never skip. |
 | `[name].js` | The LitElement class. Properties, state, lifecycle, scoped elements. **No `customElements.define()`.** | Never skip. |
-| `[name].template.js` | Pure function with destructured props: `template({ prop1, prop2 }) → html`. | Never skip. |
+| `[name].template.js` | Pure function: `template({ prop1, prop2 }) → html`. See [03-template-patterns.md](./03-template-patterns.md). | Never skip. |
 | `[name].styles.js` | Exports `css` tagged template. May import shared tokens. | Never skip. |
-| `[name].test.js` | Vitest tests: rendering, state, events. | Skip only for pure layout atoms with zero logic. |
-| `[name].stories.js` | Storybook story variants and controls. | Skip only for internal-only components. |
-| `[name].mdx` | Storybook docs page. | Skip only for trivial atoms. |
+
+Tests and stories live in **separate root directories** that mirror the `src/` structure:
+
+| File | Location | Can you skip it? |
+|------|----------|------------------|
+| `[name].test.js` | `test/` (mirrors `src/` path) | Skip only for pure layout atoms with zero logic. |
+| `[name].stories.js` | `stories/` (mirrors `src/` path) | Skip only for internal-only components. |
+| `[name].mdx` | `stories/` (alongside the story) | Skip only for trivial atoms. |
 
 ### Registration
 
 Components do **not** register themselves. `ScopedElementsMixin` in the parent handles scoped registration. Stories and tests that render a component standalone call `customElements.define()` at the top of the file — that's the story/test's responsibility, not the component's.
 
-The only exception is the **root orchestrator** (`feature-flow.js`) which calls `customElements.define()` at the bottom because it's the entry point the web-view shell loads.
+The only exception is the **root orchestrator** (`feature-flow.js`) which calls `customElements.define()` at the bottom because it's the entry point the webview shell loads.
 
-### Fixtures
+### Mock data
 
-Fixtures live in `src/mocks/fixtures.js` — they represent feature-level data states, not component-level concerns. A generic reusable component like `status-error-screen` should not own error code fixtures; those belong to the feature flow that maps domain data to component props.
+API fixtures live in `demo/mocks/api/` — they represent feature-level data states, not component-level concerns. A generic reusable component like `status-error-screen` should not own error code fixtures; those belong to the feature flow that maps domain data to component props. See [08-services-mocking-data.md](./08-services-mocking-data.md) for the full mock architecture.
 
 ### When to skip files
 
-A pure layout atom like `status-screen-layout` that has no properties, no events, and no conditional rendering can reasonably skip `.test.js` — there is nothing to assert beyond "it renders." Use judgment, not dogma.
+A pure layout atom like `status-screen-layout` that has no properties, no events, and no conditional rendering can reasonably skip tests — there is nothing to assert beyond "it renders." Use judgment, not dogma.
 
 **Don't skip files for:** Any component with properties, events, conditional rendering, or domain logic. If you're unsure, write the test — you'll thank yourself during the next refactor.
 
