@@ -146,102 +146,159 @@ this._currentStep = 'error';
 
 API mocks use [`@web/mocks`](https://www.npmjs.com/package/@web/mocks) to intercept network requests at the service-worker level. Your **real service code** runs in tests and Storybook — the mock lives in the network layer, not in the code.
 
+### The Three-Layer Architecture
+
+Each layer has one job:
+
+| Layer | File | Job |
+|-------|------|-----|
+| **Fixture data** | `api/{domain}/*.js` | Hardcoded API response objects — the raw JSON the backend returns |
+| **Mock registry** | `mocks.js` | The logic layer — maps URLs to fixture data, lazy-loads files, wraps in `Response.json()` |
+| **Scenarios** | `scenarios.js` | Pre-configured bundles of handlers — stories pick a scenario by name |
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Stories / Tests                          │
+│         parameters: { mocks: scenarios.default }               │
+└──────────────────────────────┬──────────────────────────────────┘
+                               │ picks a scenario bundle
+┌──────────────────────────────▼──────────────────────────────────┐
+│                      scenarios.js                               │
+│   Pre-configured bundles of mock handlers.                     │
+│   Each bundle = "what should the entire API look like?"        │
+│                                                                 │
+│   default: [GET card OK, POST hold OK, POST unhold OK]         │
+│   holdError: [GET card OK, POST hold 500]                      │
+│   sessionExpired: [GET card 401]                                │
+│   Re-exports fixture data for test assertions                  │
+└──────────────────────────────┬──────────────────────────────────┘
+                               │ reads handlers from
+┌──────────────────────────────▼──────────────────────────────────┐
+│                        mocks.js                                 │
+│   The logic layer — lazy loads fixtures, wraps in Response.    │
+│                                                                 │
+│   '/api/v1/cards/:cardId': {                                   │
+│     ok:     () => import('./api/cards/active.js')              │
+│                    .then(r => Response.json(r.default)),        │
+│     onHold: () => import('./api/cards/on-hold.js')             │
+│                    .then(r => Response.json(r.default)),        │
+│   }                                                            │
+└──────────────────────────────┬──────────────────────────────────┘
+                               │ lazy-imports from
+┌──────────────────────────────▼──────────────────────────────────┐
+│                     api/{domain}/*.js                           │
+│   Hardcoded response objects — copy-paste from backend curls.  │
+│   One file per response shape. Backend reviews these in PRs.   │
+│                                                                 │
+│   active.js  → { cardId: '...', cardStatus: 'active', ... }   │
+│   on-hold.js → { cardId: '...', cardStatus: 'on-hold', ... }  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ### Folder Structure
 
 ```
 demo/mocks/
-├── api/                     Response payloads (one file per endpoint+scenario)
+├── api/                     Fixture data (one file per response shape)
 │   └── cards/
-│       ├── active.js            GET /api/v1/cards/:cardId (active card)
-│       ├── on-hold.js           GET /api/v1/cards/:cardId (held card)
-│       ├── hold/ok.js           POST /api/v1/cards/:cardId/hold (success)
-│       └── unhold/ok.js         POST /api/v1/cards/:cardId/unhold (success)
-├── mocks.js                 Registry: endpoint paths → named scenarios
-└── scenarios.js             @web/mocks handlers — SINGLE SOURCE OF TRUTH
+│       ├── active.js            GET card → active state
+│       ├── on-hold.js           GET card → held state
+│       ├── hold/ok.js           POST hold → success response
+│       └── unhold/ok.js         POST unhold → success response
+├── mocks.js                 Logic: URL → lazy-loaded fixtures + Response wrapping
+└── scenarios.js             Bundles: pre-configured sets of handlers
 ```
 
-### How it works
+### Layer 1: Fixture Data (`api/*.js`)
 
-1. **Response data** lives in `demo/mocks/api/` — plain JS objects that `export default`
-2. **`mocks.js`** maps endpoint URL patterns to named scenarios:
-   ```javascript
-   export default {
-     '/api/v1/cards/:cardId':        { ok: activeCard, onHold: onHoldCard },
-     '/api/v1/cards/:cardId/hold':   { ok: holdOk },
-     '/api/v1/cards/:cardId/unhold': { ok: unholdOk },
-   };
-   ```
-3. **`scenarios.js`** creates `@web/mocks` handlers and re-exports both handlers (for stories) and raw response data (for test assertions):
-   ```javascript
-   import { http } from '@web/mocks/http.js';
-   import mocks from './mocks.js';
+Plain JS objects matching the **exact API response shape**. One file per response scenario.
 
-   // Handler for stories (parameters.mocks)
-   export const getCard = http.get(CARD_URL, () => json(mocks[CARD_URL].ok));
-
-   // Re-export for test assertions
-   export { default as activeCardResponse } from './api/cards/active.js';
-   ```
-4. **Stories** import handlers: `import { getCard, holdCard } from '../demo/mocks/scenarios.js'`
-5. **Tests** import the same file: `import { holdSuccessResponse } from '../demo/mocks/scenarios.js'`
-
-### Naming Conventions
-
-#### Handler exports (in `scenarios.js`)
-
-Pattern: **`{method}{Resource}{Scenario}`** — camelCase, verb-first.
-
-| Export | Method | Resource | Scenario |
-|--------|--------|----------|----------|
-| `getCard` | get | Card | *(happy path — no suffix)* |
-| `getCardOnHold` | get | Card | OnHold |
-| `holdCard` | hold (POST) | Card | *(happy path)* |
-| `holdCardGenericError` | hold (POST) | Card | GenericError |
-| `holdCardTimeout` | hold (POST) | Card | Timeout |
-
-**Rules:**
-- Happy-path handlers omit the scenario suffix: `getCard`, not `getCardOk`
-- Error handlers append the error type: `holdCardTimeout`
-- The method prefix matches the business action, not always the HTTP verb (`holdCard` = POST)
-
-#### Response data exports (in `scenarios.js`)
-
-Pattern: **`{scenario}{Resource}Response`** — camelCase, noun-ending.
-
-| Export | Scenario | Resource |
-|--------|----------|----------|
-| `activeCardResponse` | active | Card |
-| `onHoldCardResponse` | onHold | Card |
-| `holdSuccessResponse` | holdSuccess | *(implied)* |
-
-#### API response files (in `demo/mocks/api/`)
-
-Pattern: **`{domain}/{scenario}.js`** — kebab-case, one file per scenario.
-
-```
-api/
-└── cards/
-    ├── active.js        ← default/happy state
-    ├── on-hold.js       ← alternative state
-    ├── hold/ok.js       ← action success
-    └── unhold/ok.js     ← action success
+```javascript
+// demo/mocks/api/cards/active.js
+export default {
+  cardId: 'CARD-1234-5678-9012',
+  cardStatus: 'active',
+  maskedNumber: '**** **** **** 4567',
+  accountHolder: 'Jan de Vries',
+};
 ```
 
 **Rules:**
-- Use `ok.js` for success responses to action endpoints (POST/PUT/DELETE)
-- Use descriptive state names for GET responses (`active.js`, `on-hold.js`)
-- Group by resource domain (`cards/`), then by action (`hold/`, `unhold/`)
+- Name GET responses after the **entity state**: `active.js`, `on-hold.js`, `frozen.js`
+- Name POST/PUT/DELETE responses after the **outcome**: `ok.js` (success is usually one shape)
+- These files ARE the API contract — backend reviews them in PRs
+
+### Layer 2: Mock Registry (`mocks.js`)
+
+Maps URL patterns to fixture data. Handles **lazy loading** and **Response wrapping**.
+
+```javascript
+// demo/mocks/mocks.js
+export default {
+  '/api/v1/cards/:cardId': {
+    ok:     () => import('./api/cards/active.js').then(r => Response.json(r.default)),
+    onHold: () => import('./api/cards/on-hold.js').then(r => Response.json(r.default)),
+  },
+  '/api/v1/cards/:cardId/hold': {
+    ok: () => import('./api/cards/hold/ok.js').then(r => Response.json(r.default)),
+  },
+  '/api/v1/cards/:cardId/unhold': {
+    ok: () => import('./api/cards/unhold/ok.js').then(r => Response.json(r.default)),
+  },
+};
+```
+
+**Why lazy loading?** Fixture files can be large (arrays of 50+ objects). Lazy loading with `import()` keeps Storybook startup fast — fixtures are only loaded when a story actually uses them.
+
+### Layer 3: Scenarios (`scenarios.js`)
+
+Pre-configured **bundles** of mock handlers. Each scenario describes "what should the entire API look like?" — not individual endpoints.
+
+```javascript
+// demo/mocks/scenarios.js
+import { http } from '@web/mocks/http.js';
+import mocks from './mocks.js';
+
+export default {
+  // Happy path — all endpoints return success
+  default: [
+    http.get(CARD_URL, mocks[CARD_URL].ok),
+    http.post(HOLD_URL, mocks[HOLD_URL].ok),
+    http.post(UNHOLD_URL, mocks[UNHOLD_URL].ok),
+  ],
+
+  // Hold action fails — card loads fine but hold returns 500
+  holdError: [
+    http.get(CARD_URL, mocks[CARD_URL].ok),
+    http.post(HOLD_URL, () => new Response('', { status: 500 })),
+  ],
+
+  // Session expired — card fetch returns 401
+  sessionExpired: [
+    http.get(CARD_URL, () => json({ errorCode: 'SESSION_EXPIRED' }, { status: 401 })),
+  ],
+};
+
+// Re-export fixture data for test assertions
+export { default as activeCardResponse } from './api/cards/active.js';
+export { default as onHoldCardResponse } from './api/cards/on-hold.js';
+```
 
 ### Usage in Stories
 
-```javascript
-import { getCard, holdCard } from '../demo/mocks/scenarios.js';
+Stories pick a **scenario bundle** — the entire API environment in one line:
 
-export const HoldCard = {
-  parameters: {
-    mocks: [getCard, holdCard],  // ← @web/storybook-addon-mocks reads this
-  },
-  render: () => html`<feature-flow ...></feature-flow>`,
+```javascript
+import scenarios from '../demo/mocks/scenarios.js';
+
+// "Show me the happy path"
+export const HappyPath = {
+  parameters: { mocks: scenarios.default },
+};
+
+// "Show me what happens when hold fails"
+export const HoldFails = {
+  parameters: { mocks: scenarios.holdError },
 };
 ```
 
@@ -250,7 +307,7 @@ The `@web/storybook-addon-mocks` provides a "Mocks" panel in the Storybook UI wh
 ### Usage in Tests
 
 ```javascript
-// Import response data for assertions
+// Import fixture data for assertions
 import { activeCardResponse } from '../demo/mocks/scenarios.js';
 
 it('renders the account holder name', async () => {
@@ -263,18 +320,48 @@ it('renders the account holder name', async () => {
 
 ### Adding a New API Endpoint
 
-1. **Create response file:** `demo/mocks/api/{domain}/{scenario}.js`
-2. **Register in `demo/mocks/mocks.js`**
-3. **Add handler in `demo/mocks/scenarios.js`**
-4. **Use in story:** `parameters: { mocks: [newHandler] }`
-5. **Use in test:** `import { newResponse } from '../demo/mocks/scenarios.js'`
+1. **Create fixture file:** `demo/mocks/api/{domain}/{scenario}.js`
+2. **Register in `mocks.js`** — add lazy-loading entry with `Response.json()` wrapping
+3. **Add to scenario bundles in `scenarios.js`** — include in `default` and create new scenarios as needed
+4. **Use in story:** `parameters: { mocks: scenarios.scenarioName }`
+5. **Use in test:** `import { fixtureResponse } from '../demo/mocks/scenarios.js'`
 
-See `ARCHITECTURE.md` for the step-by-step walkthrough with code examples.
+See [Guideline 10 — API Onboarding](./10-api-onboarding.md) for a full step-by-step walkthrough.
+
+### Naming Conventions
+
+#### Fixture files (`api/`)
+
+| Endpoint type | Name after... | Example |
+|---|---|---|
+| GET (entity state) | The **state** | `active.js`, `on-hold.js`, `frozen.js`, `empty.js` |
+| POST/PUT/DELETE (action result) | The **outcome** | `ok.js`, `created.js` |
+
+#### Scenario bundles (`scenarios.js`)
+
+| Scenario | What it describes |
+|---|---|
+| `default` | Happy path — everything succeeds |
+| `holdError` | Hold action fails (500) |
+| `sessionExpired` | Auth fails (401) |
+| `timeout` | Network timeout (504) |
+| `emptyState` | GET returns empty list |
+
+#### Response re-exports (`scenarios.js`)
+
+Pattern: **`{scenario}{Resource}Response`** — for test assertions.
+
+| Export | Example |
+|---|---|
+| `activeCardResponse` | `import('./api/cards/active.js').default` |
+| `onHoldCardResponse` | `import('./api/cards/on-hold.js').default` |
 
 ### Rules
 
-1. **One scenarios file per feature.** All endpoints and scenarios for the feature in one file.
-2. **Response data lives in `api/` files.** Grouped by endpoint, exported as `default`.
-3. **Default handlers = happy path.** Use per-story `parameters.mocks` for error/edge scenarios.
-4. **Handler naming follows `verbResource` + variant.** Self-documenting exports.
-5. **Never import handlers into production code.** They are test/dev only.
+1. **One scenarios file per feature.** All scenario bundles for the feature in one file.
+2. **Fixture data lives in `api/` files.** Grouped by domain, one file per response shape.
+3. **`mocks.js` is the logic layer.** Lazy loading + Response wrapping. No HTTP handling.
+4. **Scenarios are bundles, not individual handlers.** A scenario = "what should the entire API look like?"
+5. **`default` scenario = happy path.** Every endpoint returns success. This is what most stories get.
+6. **Never import mock files into production code.** They are test/dev only.
+

@@ -10,11 +10,11 @@ Before writing any code, get this from the backend team:
 
 | Info | Example | Where it goes |
 |------|---------|---------------|
-| **URL pattern** | `GET /api/v1/accounts/:accountId` | `scenarios.js` URL constants |
+| **URL pattern** | `GET /api/v1/accounts/:accountId` | `mocks.js` URL key |
 | **HTTP method** | GET, POST, PUT, DELETE | `scenarios.js` handler type |
 | **Success response body** | `{ accountId: '...', balance: 1234 }` | `api/{domain}/ok.js` |
 | **Alternative states** | Different response for "frozen" account | `api/{domain}/frozen.js` |
-| **Error codes + HTTP status** | `401 → SESSION_EXPIRED`, `504 → TIMEOUT` | `scenarios.js` error handlers |
+| **Error codes + HTTP status** | `401 → SESSION_EXPIRED`, `504 → TIMEOUT` | `scenarios.js` error bundles |
 | **Request body (if POST/PUT)** | `{ reason: 'lost' }` | Not mocked — but good to document |
 
 > **Tip:** Ask the backend team for a sample `curl` response. Paste it directly into the fixture file.
@@ -23,9 +23,9 @@ Before writing any code, get this from the backend team:
 
 ## Step-by-Step: Adding `GET /api/v1/accounts/:accountId`
 
-### Step 1 — Create the fixture data
+### Step 1 — Create the fixture data (`api/`)
 
-Create one JS file per response scenario under `demo/mocks/api/`. The folder structure mirrors the API path.
+Create one JS file per response scenario. The folder structure mirrors the API path.
 
 ```
 demo/mocks/api/
@@ -63,9 +63,9 @@ export default {
 
 ---
 
-### Step 2 — Register in `mocks.js`
+### Step 2 — Register in `mocks.js` (the logic layer)
 
-Add the new endpoint to the lookup table. Each value is a **lazy-loading function** that returns a `Response`:
+Add lazy-loading entries that import the fixtures and wrap them in `Response.json()`:
 
 ```javascript
 // demo/mocks/mocks.js
@@ -73,71 +73,77 @@ export default {
   // ... existing entries ...
 
   '/api/v1/accounts/:accountId': {
-    ok: () => import('./api/accounts/active.js').then(r => Response.json(r.default)),
+    ok:     () => import('./api/accounts/active.js').then(r => Response.json(r.default)),
     frozen: () => import('./api/accounts/frozen.js').then(r => Response.json(r.default)),
   },
 };
 ```
 
-**Why lazy?** Fixture files can be large (arrays of 50+ transaction objects). Lazy loading keeps Storybook startup fast — fixtures are only loaded when a story actually needs them.
+**Why lazy?** Fixture files can be large (arrays of 50+ objects). `import()` ensures they're only loaded when a story actually needs them, keeping Storybook startup fast.
 
 ---
 
-### Step 3 — Create handlers in `scenarios.js`
+### Step 3 — Create scenario bundles in `scenarios.js`
 
-Add the URL constant and create MSW handlers:
+Add the new endpoint to existing bundles and create new scenario bundles as needed:
 
 ```javascript
 // demo/mocks/scenarios.js
 const ACCOUNT_URL = '/api/v1/accounts/:accountId';
 
-// ── Add to defaults (happy path) ───────────────────────────────
 export default {
-  defaults: [
-    // ... existing defaults ...
+  // Happy path — add the new endpoint alongside existing ones
+  default: [
+    // ... existing handlers ...
     http.get(ACCOUNT_URL, mocks[ACCOUNT_URL].ok),
+  ],
+
+  // Frozen account — the account is frozen, everything else is normal
+  frozenAccount: [
+    // ... existing handlers from default ...
+    http.get(ACCOUNT_URL, mocks[ACCOUNT_URL].frozen),
+  ],
+
+  // Account fetch fails — server timeout
+  accountTimeout: [
+    // ... existing handlers from default ...
+    http.get(ACCOUNT_URL, () => json({ errorCode: 'TIMEOUT' }, { status: 504 })),
   ],
 };
 
-// ── Individual handlers (for per-story overrides) ──────────────
-export const getAccount = http.get(ACCOUNT_URL, mocks[ACCOUNT_URL].ok);
-export const getAccountFrozen = http.get(ACCOUNT_URL, mocks[ACCOUNT_URL].frozen);
-export const getAccountTimeout = http.get(ACCOUNT_URL, () => json({ errorCode: 'TIMEOUT' }, { status: 504 }));
-export const getAccountSessionExpired = http.get(ACCOUNT_URL, () => json({ errorCode: 'SESSION_EXPIRED' }, { status: 401 }));
-
-// ── Re-export for test assertions ──────────────────────────────
+// Re-export fixture data for test assertions
 export { default as activeAccountResponse } from './api/accounts/active.js';
 export { default as frozenAccountResponse } from './api/accounts/frozen.js';
 ```
+
+**Key idea:** Each scenario is a **bundle** — "what should the entire API look like?" Stories pick a whole scenario, not individual handlers.
 
 ---
 
 ### Step 4 — Use in stories
 
 ```javascript
-// stories/screens/account/account.stories.js
-import { getAccount, getAccountFrozen, getAccountTimeout } from '../../../demo/mocks/scenarios.js';
+import scenarios from '../../../demo/mocks/scenarios.js';
 
+// "Show me the happy path"
 export const ActiveAccount = {
-  parameters: { mocks: [getAccount] },
-  render: () => { /* ... */ },
+  parameters: { mocks: scenarios.default },
 };
 
+// "Show me the frozen account"
 export const FrozenAccount = {
-  parameters: { mocks: [getAccountFrozen] },
-  render: () => { /* ... */ },
+  parameters: { mocks: scenarios.frozenAccount },
 };
 
-export const TimeoutError = {
-  parameters: { mocks: [getAccountTimeout] },
-  render: () => { /* ... */ },
+// "Show me a timeout error"
+export const Timeout = {
+  parameters: { mocks: scenarios.accountTimeout },
 };
 ```
 
 ### Step 5 — Use in tests
 
 ```javascript
-// test/screens/account.test.js
 import { activeAccountResponse } from '../demo/mocks/scenarios.js';
 
 it('displays the account holder name', async () => {
@@ -148,42 +154,13 @@ it('displays the account holder name', async () => {
 
 ---
 
-## The Three-Layer Architecture
+## The Three Layers — Summary
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Stories / Tests                          │
-│   import { getAccount, getAccountTimeout } from scenarios.js   │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │ imports handlers
-┌──────────────────────────────▼──────────────────────────────────┐
-│                        scenarios.js                             │
-│   "When should the API return what?"                           │
-│                                                                 │
-│   • defaults[] — happy path for all endpoints                  │
-│   • Named exports — individual overrides for specific stories  │
-│   • Error handlers — timeout, session expired, generic error   │
-│   • Re-exports fixture data for test assertions                │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │ reads from
-┌──────────────────────────────▼──────────────────────────────────┐
-│                          mocks.js                              │
-│   "What data does each URL return?"                            │
-│                                                                 │
-│   • URL → { ok: () => import(...), frozen: () => import(...) } │
-│   • Lazy loading — fixtures only loaded when needed            │
-│   • Response.json() wrapping — turns raw data into HTTP resp   │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │ lazy-imports from
-┌──────────────────────────────▼──────────────────────────────────┐
-│                       api/{domain}/*.js                         │
-│   "What does the API actually return?"                         │
-│                                                                 │
-│   • Plain JS objects — copy-paste from backend curl responses  │
-│   • One file per response scenario                             │
-│   • This IS the API contract — backend reviews these in PRs    │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Layer | File | Responsibility | Changes when... |
+|-------|------|---------------|-----------------|
+| **Fixture data** | `api/{domain}/*.js` | Hardcoded response objects — what the backend returns | API response shape changes |
+| **Mock registry** | `mocks.js` | Lazy-loads fixtures, maps URLs, wraps in `Response.json()` | New endpoint or new response variant added |
+| **Scenarios** | `scenarios.js` | Pre-configured bundles — "what should the entire API look like?" | New story needs a different API environment |
 
 ---
 
@@ -194,9 +171,9 @@ When onboarding a new API endpoint:
 - [ ] **Got the API spec from backend** — URL, method, response shape, error codes
 - [ ] **Created fixture files** — `demo/mocks/api/{domain}/{scenario}.js`
 - [ ] **Registered in `mocks.js`** — lazy-loading entry with `Response.json()` wrapping
-- [ ] **Added handlers in `scenarios.js`** — defaults + individual + error combos
+- [ ] **Added to scenario bundles in `scenarios.js`** — included in `default` + created new bundles
 - [ ] **Re-exported fixture data** — for test assertions
-- [ ] **Used in stories** — `parameters: { mocks: [handler] }`
+- [ ] **Used in stories** — `parameters: { mocks: scenarios.bundleName }`
 - [ ] **Used in tests** — imported response data for assertions
 - [ ] **Backend reviewed fixture files** — confirms response shape matches real API
 
@@ -206,8 +183,7 @@ When onboarding a new API endpoint:
 
 | What | Pattern | Example |
 |------|---------|---------|
-| Fixture file | `api/{domain}/{state}.js` | `api/accounts/frozen.js` |
-| Handler export | `{verb}{Resource}{Scenario}` | `getAccountFrozen` |
-| Error handler | `{verb}{Resource}{ErrorType}` | `holdCardTimeout` |
+| Fixture file (GET state) | `api/{domain}/{state}.js` | `api/accounts/frozen.js` |
+| Fixture file (POST result) | `api/{domain}/{action}/ok.js` | `api/cards/hold/ok.js` |
+| Scenario bundle | Descriptive name of the environment | `default`, `frozenAccount`, `accountTimeout` |
 | Response re-export | `{scenario}{Resource}Response` | `frozenAccountResponse` |
-| URL constant | `{RESOURCE}_URL` | `ACCOUNT_URL` |
