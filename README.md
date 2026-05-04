@@ -23,14 +23,12 @@ src/
 ├── components/         # Reusable, domain-agnostic (layout, shells)
 ├── screens/            # Domain-specific smart components
 ├── services/           # API clients with error normalization
-├── mocks/              # Shared test/story fixtures
-├── docs/               # Storybook MDX documentation pages
 ├── feature-flow.js     # Root orchestrator (entry point)
 ├── tokens.js           # Design tokens (CSS custom properties)
 └── types.js            # Shared JSDoc typedefs
 ```
 
-See `docs/guidelines/` for the full documentation suite (9 guidelines).
+See `docs/guidelines/` for the full documentation suite (12 guidelines).
 
 ## Getting Started
 
@@ -47,13 +45,16 @@ pnpm build-storybook    # static build → storybook-static/
 |---|-----------|---------|
 | 01 | Folder Structure | 7-file standard, colocation, naming |
 | 02 | Component Architecture | 3-layer model, Fixture vs Smart Component |
-| 03 | State & Variables | Props, state, events, naming conventions |
-| 04 | Styling | Tokens, Shadow DOM, `:host`, `::part()` |
-| 05 | Storybook | Audiences, story patterns, mock service injection |
-| 06 | Testing | Vitest + Playwright, mount helper, service tests |
-| 07 | Services & Data | DI, error normalization, bounded contexts |
-| 08 | Accessibility | ARIA, focus management, color contrast |
-| 09 | Internationalization | `LocalizeMixin`, namespaces, translation files |
+| 03 | Template Patterns | Extracted `template(props)`, pure functions, no `this` |
+| 04 | State & Variables | Props, state, events, naming conventions |
+| 05 | Styling | Tokens, Shadow DOM, `:host`, `::part()` |
+| 06 | Storybook Standards | Audiences, story patterns, mock service injection |
+| 07 | Testing Standards | Vitest + Playwright, mount helper, service tests |
+| 08 | Services & Data | DI, error normalization, bounded contexts |
+| 09 | Accessibility | ARIA, focus management, color contrast |
+| 10 | Internationalization | `LocalizeMixin`, namespaces, translation files |
+| 11 | Mocking Strategy | MSW v2, one file per API domain, handler naming |
+| 12 | Open-WC Alignment | What we follow, conscious trade-offs, migration path |
 
 ## References
 
