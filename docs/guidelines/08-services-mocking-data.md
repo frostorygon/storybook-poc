@@ -153,8 +153,8 @@ Each layer has one job:
 | Layer | File | Job |
 |-------|------|-----|
 | **Fixture data** | `api/{domain}/*.js` | Hardcoded API response objects — the raw JSON the backend returns |
-| **Mock registry** | `mocks.js` | The logic layer — maps URLs to fixture data, lazy-loads files, wraps in `Response.json()` |
-| **Scenarios** | `scenarios.js` | Pre-configured bundles of handlers — stories pick a scenario by name |
+| **Mock registry** | `mocks.js` | The logic layer — ALL possible responses per URL (success AND errors), lazy-loaded |
+| **Scenarios** | `scenarios.js` | Pure grouping — picks from `mocks.js` to create named bundles. Never creates responses. |
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -175,16 +175,18 @@ Each layer has one job:
                                │ reads handlers from
 ┌──────────────────────────────▼──────────────────────────────────┐
 │                        mocks.js                                 │
-│   The logic layer — lazy loads fixtures, wraps in Response.    │
+│   ALL possible responses per URL — success AND errors.         │
+│   Lazy loads fixtures, wraps in Response.                      │
 │                                                                 │
 │   '/api/v1/cards/:cardId': {                                   │
-│     ok:     () => import('./api/cards/active.js')              │
-│                    .then(r => Response.json(r.default)),        │
-│     onHold: () => import('./api/cards/on-hold.js')             │
-│                    .then(r => Response.json(r.default)),        │
+│     ok:             () => import(…).then(Response.json),        │
+│     onHold:         () => import(…).then(Response.json),        │
+│     genericError:   () => Response.json({…}, {status: 500}),   │
+│     timeout:        () => Response.json({…}, {status: 504}),   │
+│     sessionExpired: () => Response.json({…}, {status: 401}),   │
 │   }                                                            │
 └──────────────────────────────┬──────────────────────────────────┘
-                               │ lazy-imports from
+                               │ lazy-imports success data from
 ┌──────────────────────────────▼──────────────────────────────────┐
 │                     api/{domain}/*.js                           │
 │   Hardcoded response objects — copy-paste from backend curls.  │
@@ -230,29 +232,42 @@ export default {
 
 ### Layer 2: Mock Registry (`mocks.js`)
 
-Maps URL patterns to fixture data. Handles **lazy loading** and **Response wrapping**.
+Contains **ALL possible responses** for every URL — both success and error. This is where response creation logic lives. Scenarios never create responses themselves.
 
 ```javascript
 // demo/mocks/mocks.js
 export default {
   '/api/v1/cards/:cardId': {
+    // Success responses — lazy-loaded from fixture files
     ok:     () => import('./api/cards/active.js').then(r => Response.json(r.default)),
     onHold: () => import('./api/cards/on-hold.js').then(r => Response.json(r.default)),
+    // Error responses — inline (small, no need for fixture files)
+    genericError:   () => Response.json({ errorCode: 'GENERIC_ERROR' }, { status: 500 }),
+    timeout:        () => Response.json({ errorCode: 'TIMEOUT' }, { status: 504 }),
+    sessionExpired: () => Response.json({ errorCode: 'SESSION_EXPIRED' }, { status: 401 }),
   },
   '/api/v1/cards/:cardId/hold': {
-    ok: () => import('./api/cards/hold/ok.js').then(r => Response.json(r.default)),
+    ok:             () => import('./api/cards/hold/ok.js').then(r => Response.json(r.default)),
+    genericError:   () => Response.json({ errorCode: 'GENERIC_ERROR' }, { status: 500 }),
+    timeout:        () => Response.json({ errorCode: 'TIMEOUT' }, { status: 504 }),
+    sessionExpired: () => Response.json({ errorCode: 'SESSION_EXPIRED' }, { status: 401 }),
   },
   '/api/v1/cards/:cardId/unhold': {
-    ok: () => import('./api/cards/unhold/ok.js').then(r => Response.json(r.default)),
+    ok:             () => import('./api/cards/unhold/ok.js').then(r => Response.json(r.default)),
+    genericError:   () => Response.json({ errorCode: 'GENERIC_ERROR' }, { status: 500 }),
+    timeout:        () => Response.json({ errorCode: 'TIMEOUT' }, { status: 504 }),
+    sessionExpired: () => Response.json({ errorCode: 'SESSION_EXPIRED' }, { status: 401 }),
   },
 };
 ```
 
-**Why lazy loading?** Fixture files can be large (arrays of 50+ objects). Lazy loading with `import()` keeps Storybook startup fast — fixtures are only loaded when a story actually uses them.
+**Why lazy loading for success?** Fixture files can be large (arrays of 50+ objects). `import()` keeps startup fast. Error responses are small enough to inline.
+
+**Key rule:** If a response exists, it lives in `mocks.js`. Scenarios only *reference* mocks — never create responses.
 
 ### Layer 3: Scenarios (`scenarios.js`)
 
-Pre-configured **bundles** of mock handlers. Each scenario describes "what should the entire API look like?" — not individual endpoints.
+Pure **grouping** — picks responses from `mocks.js` and bundles them into named scenarios. Each scenario describes "what should the entire API look like?" Never creates responses itself.
 
 ```javascript
 // demo/mocks/scenarios.js
@@ -270,12 +285,12 @@ export default {
   // Hold action fails — card loads fine but hold returns 500
   holdError: [
     http.get(CARD_URL, mocks[CARD_URL].ok),
-    http.post(HOLD_URL, () => new Response('', { status: 500 })),
+    http.post(HOLD_URL, mocks[HOLD_URL].genericError),
   ],
 
   // Session expired — card fetch returns 401
   sessionExpired: [
-    http.get(CARD_URL, () => json({ errorCode: 'SESSION_EXPIRED' }, { status: 401 })),
+    http.get(CARD_URL, mocks[CARD_URL].sessionExpired),
   ],
 };
 
@@ -360,8 +375,9 @@ Pattern: **`{scenario}{Resource}Response`** — for test assertions.
 
 1. **One scenarios file per feature.** All scenario bundles for the feature in one file.
 2. **Fixture data lives in `api/` files.** Grouped by domain, one file per response shape.
-3. **`mocks.js` is the logic layer.** Lazy loading + Response wrapping. No HTTP handling.
-4. **Scenarios are bundles, not individual handlers.** A scenario = "what should the entire API look like?"
-5. **`default` scenario = happy path.** Every endpoint returns success. This is what most stories get.
-6. **Never import mock files into production code.** They are test/dev only.
+3. **`mocks.js` owns ALL responses.** Both success (lazy-loaded from `api/`) and errors (inline). This is the single source of truth for "what can this URL return?"
+4. **`scenarios.js` only groups — never creates responses.** It references `mocks[URL].variant`, never `new Response(...)` or `Response.json(...)` directly.
+5. **Scenarios are bundles, not individual handlers.** A scenario = "what should the entire API look like?"
+6. **`default` scenario = happy path.** Every endpoint returns success. This is what most stories get.
+7. **Never import mock files into production code.** They are test/dev only.
 
