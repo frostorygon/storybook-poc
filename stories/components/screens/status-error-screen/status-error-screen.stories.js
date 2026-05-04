@@ -41,7 +41,7 @@ function getShadowContent(canvasElement) {
 }
 
 export default {
-  title: 'Screens / Error Screen',
+  title: 'Components / Error Screen',
   component: 'status-error-screen',
 
   // ── Controls ──────────────────────────────────────────────────────

@@ -38,8 +38,11 @@ Screens/
     Request Timed Out     ← variant: error-type="Timeout"
     Session Expired       ← variant: error-type="SessionExpired"
   Toggle Screen           ← with Controls + Actions + Interactions
+Components/
+  Layout/
+    Status Screen Layout  ← shared layout atom
   Error Screen            ← reusable shell with controls + edge cases
-  Success Screen          ← with dismiss action + edge cases
+  Success Screen          ← reusable shell with dismiss action + edge cases
 ```
 
 The `title` property in each `.stories.js` file drives this. Keep hierarchy to a maximum of 3 levels.

@@ -23,7 +23,7 @@ function getShadowContent(canvasElement) {
 }
 
 export default {
-  title: 'Screens / Success Screen',
+  title: 'Components / Success Screen',
   component: 'status-success-screen',
 
   // ── Controls ──────────────────────────────────────────────────────
