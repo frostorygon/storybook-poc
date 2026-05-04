@@ -36,13 +36,18 @@ function getFlowContent(canvasElement) {
   const flow = canvasElement.querySelector('feature-flow');
   const flowRoot = flow?.shadowRoot;
   const screen = flowRoot?.querySelector(
-    'holdcard-toggle-screen, status-success-screen, status-error-screen, session-expired-error-screen'
+    'holdcard-toggle-screen, hold-success-screen, unhold-success-screen, generic-error-screen, timeout-error-screen, session-expired-error-screen'
   );
   const screenRoot = screen?.shadowRoot;
-  
+
+  // Smart screens wrap a shell (status-error-screen / status-success-screen)
+  // which has its own shadow root containing the actual text content.
+  const shell = screenRoot?.querySelector('status-error-screen, status-success-screen');
+  const shellRoot = shell?.shadowRoot;
+
   return {
-    text: screenRoot?.textContent || '',
-    button: screenRoot?.querySelector('lion-button'),
+    text: shellRoot?.textContent || screenRoot?.textContent || '',
+    button: shellRoot?.querySelector('lion-button') || screenRoot?.querySelector('lion-button'),
   };
 }
 

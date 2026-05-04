@@ -2,64 +2,42 @@
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { LitElement, html } from 'lit';
 import { HoldcardToggleScreen } from './screens/toggle/index.js';
-import { StatusErrorScreen } from './components/screens/status-error-screen/index.js';
-import { StatusSuccessScreen } from './components/screens/status-success-screen/index.js';
+import { GenericErrorScreen } from './screens/error/generic/index.js';
+import { TimeoutErrorScreen } from './screens/error/timeout/index.js';
 import { SessionExpiredErrorScreen } from './screens/error/session-expired/index.js';
+import { HoldSuccessScreen } from './screens/success/held/index.js';
+import { UnholdSuccessScreen } from './screens/success/unheld/index.js';
 import { HoldcardService } from './services/holdcard-service.js';
 import { styles } from './feature-flow.styles.js';
 
-const FLOW_FIXTURES = {
-  ERRORS: {
-    TIMEOUT: {
-      title: 'Request timed out',
-      description: 'The request took too long. Please try again.',
-      actionLabel: 'Try Again',
-    },
-    GENERIC_ERROR: {
-      title: 'Something went wrong',
-      description: "We couldn't process your request. Please try again later.",
-      actionLabel: 'Try Again',
-    }
-  },
-  SUCCESS: {
-    held: {
-      title: 'Card successfully put on hold',
-      description: 'Your card is now frozen and cannot be used for new transactions.',
-      actionLabel: 'Back to overview',
-    },
-    unheld: {
-      title: 'Card successfully reactivated',
-      description: 'Your card is active and ready to be used again.',
-      actionLabel: 'Back to overview',
-    }
-  }
+/**
+ * Error code → step name mapping.
+ * Unknown error codes fall back to 'error-generic'.
+ * @type {Record<string, string>}
+ */
+const ERROR_STEP_MAP = {
+  SESSION_EXPIRED: 'error-session',
+  TIMEOUT: 'error-timeout',
 };
 
 /**
  * feature-flow — orchestrates the full Temporary Holdcard user journey.
  *
- * Manages the three-step flow: toggle → success | error → (retry → toggle).
- * Delegates all API calls to HoldcardService, which is injected as a property
- * so that tests can substitute a mock without patching globals.
+ * A thin router / state machine. Delegates all API calls to HoldcardService
+ * (injected as a property) and renders self-contained screen components based
+ * on the current step. Each screen owns its own copy, icons, and behavior.
  *
- * @typedef {Object} FeatureFlowState
- * @property {string | undefined} cardId
- * @property {import('./types.js').CardStatus} cardStatus
- * @property {string | undefined} accountHolder
- * @property {InstanceType<typeof HoldcardService>} service
- * @property {'toggle' | 'success' | 'error'} _currentStep
- * @property {import('./types.js').TransactionType | undefined} _transactionType
- * @property {import('./types.js').ErrorContext | null} _errorContext
- * @property {boolean} _isLoading
+ * @typedef {'toggle' | 'success-held' | 'success-unheld' | 'error-generic' | 'error-timeout' | 'error-session'} FlowStep
  */
-
 export class FeatureFlow extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
     return {
       'holdcard-toggle-screen': HoldcardToggleScreen,
-      'status-error-screen': StatusErrorScreen,
-      'status-success-screen': StatusSuccessScreen,
+      'generic-error-screen': GenericErrorScreen,
+      'timeout-error-screen': TimeoutErrorScreen,
       'session-expired-error-screen': SessionExpiredErrorScreen,
+      'hold-success-screen': HoldSuccessScreen,
+      'unhold-success-screen': UnholdSuccessScreen,
     };
   }
 
@@ -70,8 +48,6 @@ export class FeatureFlow extends ScopedElementsMixin(LitElement) {
       accountHolder: { type: String },
       service: { type: Object },
       _currentStep: { type: String, state: true },
-      _transactionType: { type: String, state: true },
-      _errorContext: { type: Object, state: true },
       _isLoading: { type: Boolean, state: true },
     };
   }
@@ -90,12 +66,8 @@ export class FeatureFlow extends ScopedElementsMixin(LitElement) {
     this.accountHolder = undefined;
     /** @type {InstanceType<typeof HoldcardService>} */
     this.service = new HoldcardService();
-    /** @type {'toggle' | 'success' | 'error'} */
+    /** @type {FlowStep} */
     this._currentStep = 'toggle';
-    /** @type {import('./types.js').TransactionType | undefined} */
-    this._transactionType = undefined;
-    /** @type {import('./types.js').ErrorContext | null} */
-    this._errorContext = null;
     /** @type {boolean} */
     this._isLoading = false;
   }
@@ -108,17 +80,15 @@ export class FeatureFlow extends ScopedElementsMixin(LitElement) {
     this._isLoading = true;
 
     try {
-      const result = action === 'hold'
+      action === 'hold'
         ? await this.service.holdCard(this.cardId ?? '')
         : await this.service.unholdCard(this.cardId ?? '');
 
-      this._transactionType = result.transactionType;
       this.cardStatus = action === 'hold' ? 'on-hold' : 'active';
-      this._currentStep = 'success';
+      this._currentStep = action === 'hold' ? 'success-held' : 'success-unheld';
     } catch (err) {
-      // err is already a normalised ErrorContext from HoldcardService._normalizeError()
-      this._errorContext = /** @type {import('./types.js').ErrorContext} */ (err);
-      this._currentStep = 'error';
+      const errorCode = /** @type {import('./types.js').ErrorContext} */ (err).errorCode;
+      this._currentStep = ERROR_STEP_MAP[errorCode] || 'error-generic';
     } finally {
       this._isLoading = false;
       this._moveFocusToContent();
@@ -127,7 +97,6 @@ export class FeatureFlow extends ScopedElementsMixin(LitElement) {
 
   _handleRetry() {
     this._currentStep = 'toggle';
-    this._errorContext = null;
     this._moveFocusToContent();
   }
 
@@ -148,59 +117,37 @@ export class FeatureFlow extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  _renderSuccessScreen() {
-    // Using Fixtures for basic text changes (avoiding redundant web component files)
-    const transactionType = this._transactionType === 'held' ? 'held' : 'unheld';
-    const fixture = FLOW_FIXTURES.SUCCESS[transactionType];
-
-    return html`
-      <status-success-screen
-        .successTitle=${fixture.title}
-        .successMessage=${fixture.description}
-        .dismissLabel=${fixture.actionLabel}
-        @dismiss="${this._handleDismiss}"
-      ></status-success-screen>
-    `;
-  }
-
-  _renderErrorScreen() {
-    const code = this._errorContext?.errorCode;
-
-    // The Smart Component intercept
-    // We separate this into a physical component file because it handles unique domain logic (Auth Redirects)
-    if (code === 'SESSION_EXPIRED') {
-      return html`<session-expired-error-screen></session-expired-error-screen>`;
+  /** @returns {import('lit').TemplateResult} */
+  _renderStep() {
+    switch (this._currentStep) {
+      case 'toggle':
+        return html`
+          <holdcard-toggle-screen
+            .cardStatus=${this.cardStatus}
+            .accountHolder=${this.accountHolder}
+            ?isLoading=${this._isLoading}
+            @action="${this._handleAction}">
+          </holdcard-toggle-screen>`;
+      case 'success-held':
+        return html`<hold-success-screen @dismiss="${this._handleDismiss}"></hold-success-screen>`;
+      case 'success-unheld':
+        return html`<unhold-success-screen @dismiss="${this._handleDismiss}"></unhold-success-screen>`;
+      case 'error-generic':
+        return html`<generic-error-screen @retry="${this._handleRetry}" @dismiss="${this._handleDismiss}"></generic-error-screen>`;
+      case 'error-timeout':
+        return html`<timeout-error-screen @retry="${this._handleRetry}" @dismiss="${this._handleDismiss}"></timeout-error-screen>`;
+      case 'error-session':
+        return html`<session-expired-error-screen></session-expired-error-screen>`;
+      default:
+        return html``;
     }
-
-    // Using Fixtures for generic text changes
-    const fixture = FLOW_FIXTURES.ERRORS[code] || FLOW_FIXTURES.ERRORS.GENERIC_ERROR;
-
-    return html`
-      <status-error-screen
-        .errorTitle=${fixture.title}
-        .errorMessage=${fixture.description}
-        .retryLabel=${fixture.actionLabel}
-        ?retryable=${this._errorContext?.retryable ?? true}
-        @retry="${this._handleRetry}"
-        @dismiss="${this._handleDismiss}"
-      ></status-error-screen>
-    `;
   }
 
   render() {
     return html`
       <div class="header">Card Management</div>
       <div class="content">
-        ${this._currentStep === 'toggle' ? html`
-          <holdcard-toggle-screen
-            .cardStatus=${this.cardStatus}
-            .accountHolder=${this.accountHolder}
-            ?isLoading=${this._isLoading}
-            @action="${this._handleAction}">
-          </holdcard-toggle-screen>
-        ` : ''}
-        ${this._currentStep === 'success' ? this._renderSuccessScreen() : ''}
-        ${this._currentStep === 'error' ? this._renderErrorScreen() : ''}
+        ${this._renderStep()}
       </div>
     `;
   }

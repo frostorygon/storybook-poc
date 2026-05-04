@@ -24,11 +24,11 @@ describe('feature-flow', () => {
     el.cardStatus = 'active';
     await el.updateComplete;
     expect(el.shadowRoot.querySelector('holdcard-toggle-screen')).toBeTruthy();
-    expect(el.shadowRoot.querySelector('status-success-screen')).toBeFalsy();
-    expect(el.shadowRoot.querySelector('status-error-screen')).toBeFalsy();
+    expect(el.shadowRoot.querySelector('hold-success-screen')).toBeFalsy();
+    expect(el.shadowRoot.querySelector('generic-error-screen')).toBeFalsy();
   });
 
-  it('transitions to success screen after successful hold', async () => {
+  it('transitions to hold success screen after successful hold', async () => {
     const el = mount('<feature-flow></feature-flow>');
     el.cardStatus = 'active';
     el.service = createMockService();
@@ -41,11 +41,11 @@ describe('feature-flow', () => {
     await el.updateComplete;
     await el.updateComplete;
 
-    expect(el.shadowRoot.querySelector('status-success-screen')).toBeTruthy();
+    expect(el.shadowRoot.querySelector('hold-success-screen')).toBeTruthy();
     expect(el.shadowRoot.querySelector('holdcard-toggle-screen')).toBeFalsy();
   });
 
-  it('transitions to success screen after successful unhold', async () => {
+  it('transitions to unhold success screen after successful unhold', async () => {
     const el = mount('<feature-flow></feature-flow>');
     el.cardStatus = 'on-hold';
     el.service = createMockService();
@@ -58,10 +58,10 @@ describe('feature-flow', () => {
     await el.updateComplete;
     await el.updateComplete;
 
-    expect(el.shadowRoot.querySelector('status-success-screen')).toBeTruthy();
+    expect(el.shadowRoot.querySelector('unhold-success-screen')).toBeTruthy();
   });
 
-  it('transitions to error screen when the API rejects', async () => {
+  it('transitions to generic error screen when the API rejects', async () => {
     const el = mount('<feature-flow></feature-flow>');
     el.cardStatus = 'active';
     el.service = createMockService({ holdError: { errorCode: 'GENERIC_ERROR', retryable: true } });
@@ -74,7 +74,7 @@ describe('feature-flow', () => {
     await el.updateComplete;
     await el.updateComplete;
 
-    expect(el.shadowRoot.querySelector('status-error-screen')).toBeTruthy();
+    expect(el.shadowRoot.querySelector('generic-error-screen')).toBeTruthy();
   });
 
   it('returns to toggle screen after retry', async () => {
@@ -88,9 +88,9 @@ describe('feature-flow', () => {
     await new Promise((r) => setTimeout(r, 200));
     await el.updateComplete;
     await el.updateComplete;
-    expect(el.shadowRoot.querySelector('status-error-screen')).toBeTruthy();
+    expect(el.shadowRoot.querySelector('generic-error-screen')).toBeTruthy();
 
-    el.shadowRoot.querySelector('status-error-screen')
+    el.shadowRoot.querySelector('generic-error-screen')
       .dispatchEvent(new CustomEvent('retry', { bubbles: true, composed: true }));
     await new Promise((r) => setTimeout(r, 50));
     await el.updateComplete;
