@@ -15,11 +15,28 @@ if (!customElements.get('error-screen')) {
   customElements.define('error-screen', ErrorScreen);
 }
 
-/** Shadow DOM query — screen → status-error-screen shell */
+/**
+ * Shadow DOM query — traverses two shadow roots:
+ * error-screen → status-error-screen shell → text/buttons
+ *
+ * Text is combined from both layers because:
+ * - Prop-based variants render text inside the shell's shadow root
+ * - Slot-based variants (SessionExpired) render text in the screen's shadow root
+ */
 function getContent(canvasElement) {
   const el = canvasElement.querySelector('error-screen');
-  const root = el?.shadowRoot;
-  return { el, root, text: root?.textContent || '' };
+  const screenRoot = el?.shadowRoot;
+  const shell = screenRoot?.querySelector('status-error-screen');
+  const shellRoot = shell?.shadowRoot;
+  const text = [screenRoot?.textContent, shellRoot?.textContent]
+    .filter(Boolean)
+    .join(' ');
+  return {
+    el,
+    root: shellRoot || screenRoot,
+    text,
+    button: screenRoot?.querySelector('lion-button') || shellRoot?.querySelector('lion-button'),
+  };
 }
 
 export default {
@@ -102,8 +119,8 @@ export const SessionExpired = {
     });
 
     await step('Click "Go to Login" → verify auth-redirect event', async () => {
-      const { root } = getContent(canvasElement);
-      root.querySelector('lion-button').click();
+      const { button } = getContent(canvasElement);
+      button.click();
       await expect(args.onAuthRedirect).toHaveBeenCalledTimes(1);
     });
   },

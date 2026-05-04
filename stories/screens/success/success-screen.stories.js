@@ -14,11 +14,20 @@ if (!customElements.get('success-screen')) {
   customElements.define('success-screen', SuccessScreen);
 }
 
-/** Shadow DOM query — screen → status-success-screen shell */
+/**
+ * Shadow DOM query — traverses two shadow roots:
+ * success-screen → status-success-screen shell → text/buttons
+ */
 function getContent(canvasElement) {
   const el = canvasElement.querySelector('success-screen');
-  const root = el?.shadowRoot;
-  return { el, root, text: root?.textContent || '' };
+  const screenRoot = el?.shadowRoot;
+  const shell = screenRoot?.querySelector('status-success-screen');
+  const shellRoot = shell?.shadowRoot;
+  return {
+    el,
+    root: shellRoot || screenRoot,
+    text: shellRoot?.textContent || screenRoot?.textContent || '',
+  };
 }
 
 export default {
