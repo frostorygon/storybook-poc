@@ -37,6 +37,9 @@ Screens/
     Something Went Wrong  ← variant: error-type="SomethingWentWrong"
     Request Timed Out     ← variant: error-type="Timeout"
     Session Expired       ← variant: error-type="SessionExpired"
+  Success/
+    Card Put On Hold      ← variant: success-type="Held"
+    Card Reactivated      ← variant: success-type="Unheld"
   Toggle Screen           ← with Controls + Actions + Interactions
 Components/
   Layout/
