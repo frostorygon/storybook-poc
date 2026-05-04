@@ -30,17 +30,17 @@ export default {
 
 /**
  * Helper to query two levels of Shadow DOM:
- * feature-flow -> active screen -> text/buttons
+ * feature-flow -> active screen -> shell -> text/buttons
  */
 function getFlowContent(canvasElement) {
   const flow = canvasElement.querySelector('feature-flow');
   const flowRoot = flow?.shadowRoot;
   const screen = flowRoot?.querySelector(
-    'holdcard-toggle-screen, hold-success-screen, unhold-success-screen, generic-error-screen, timeout-error-screen, session-expired-error-screen'
+    'holdcard-toggle-screen, error-screen, success-screen'
   );
   const screenRoot = screen?.shadowRoot;
 
-  // Smart screens wrap a shell (status-error-screen / status-success-screen)
+  // Variant screens wrap a shell (status-error-screen / status-success-screen)
   // which has its own shadow root containing the actual text content.
   const shell = screenRoot?.querySelector('status-error-screen, status-success-screen');
   const shellRoot = shell?.shadowRoot;

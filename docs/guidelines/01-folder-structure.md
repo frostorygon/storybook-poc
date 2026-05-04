@@ -23,13 +23,8 @@ storybook-poc/
 │   │       └── status-success-screen/
 │   ├── screens/             Domain-specific "smart" components
 │   │   ├── toggle/          holdcard-toggle-screen
-│   │   ├── error/
-│   │   │   ├── generic/     generic-error-screen
-│   │   │   ├── timeout/     timeout-error-screen
-│   │   │   └── session-expired/
-│   │   └── success/
-│   │       ├── held/        hold-success-screen
-│   │       └── unheld/      unhold-success-screen
+│   │   ├── error/           error-screen (variant-driven: SomethingWentWrong, Timeout, SessionExpired)
+│   │   └── success/         success-screen (variant-driven: Held, Unheld)
 │   ├── services/            API clients, data normalization
 │   │   ├── holdcard-service.js
 │   │   └── auth-service.js

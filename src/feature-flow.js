@@ -2,42 +2,36 @@
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { LitElement, html } from 'lit';
 import { HoldcardToggleScreen } from './screens/toggle/index.js';
-import { GenericErrorScreen } from './screens/error/generic/index.js';
-import { TimeoutErrorScreen } from './screens/error/timeout/index.js';
-import { SessionExpiredErrorScreen } from './screens/error/session-expired/index.js';
-import { HoldSuccessScreen } from './screens/success/held/index.js';
-import { UnholdSuccessScreen } from './screens/success/unheld/index.js';
+import { ErrorScreen } from './screens/error/index.js';
+import { SuccessScreen } from './screens/success/index.js';
 import { HoldcardService } from './services/holdcard-service.js';
 import { styles } from './feature-flow.styles.js';
 
 /**
- * Error code → step name mapping.
- * Unknown error codes fall back to 'error-generic'.
- * @type {Record<string, string>}
+ * Error code → ErrorType mapping.
+ * Unknown error codes fall back to 'SomethingWentWrong'.
+ * @type {Record<string, import('./screens/error/error-screen.js').ErrorType>}
  */
-const ERROR_STEP_MAP = {
-  SESSION_EXPIRED: 'error-session',
-  TIMEOUT: 'error-timeout',
+const ERROR_TYPE_MAP = {
+  SESSION_EXPIRED: 'SessionExpired',
+  TIMEOUT: 'Timeout',
 };
 
 /**
  * feature-flow — orchestrates the full Temporary Holdcard user journey.
  *
  * A thin router / state machine. Delegates all API calls to HoldcardService
- * (injected as a property) and renders self-contained screen components based
- * on the current step. Each screen owns its own copy, icons, and behavior.
+ * (injected as a property) and renders variant-driven screen components based
+ * on the current step. Each screen owns its own copy and behavior internally.
  *
- * @typedef {'toggle' | 'success-held' | 'success-unheld' | 'error-generic' | 'error-timeout' | 'error-session'} FlowStep
+ * @typedef {'toggle' | 'error' | 'success'} FlowStep
  */
 export class FeatureFlow extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
     return {
       'holdcard-toggle-screen': HoldcardToggleScreen,
-      'generic-error-screen': GenericErrorScreen,
-      'timeout-error-screen': TimeoutErrorScreen,
-      'session-expired-error-screen': SessionExpiredErrorScreen,
-      'hold-success-screen': HoldSuccessScreen,
-      'unhold-success-screen': UnholdSuccessScreen,
+      'error-screen': ErrorScreen,
+      'success-screen': SuccessScreen,
     };
   }
 
@@ -48,6 +42,8 @@ export class FeatureFlow extends ScopedElementsMixin(LitElement) {
       accountHolder: { type: String },
       service: { type: Object },
       _currentStep: { type: String, state: true },
+      _errorType: { type: String, state: true },
+      _successType: { type: String, state: true },
       _isLoading: { type: Boolean, state: true },
     };
   }
@@ -68,6 +64,10 @@ export class FeatureFlow extends ScopedElementsMixin(LitElement) {
     this.service = new HoldcardService();
     /** @type {FlowStep} */
     this._currentStep = 'toggle';
+    /** @type {import('./screens/error/error-screen.js').ErrorType} */
+    this._errorType = 'SomethingWentWrong';
+    /** @type {import('./screens/success/success-screen.js').SuccessType} */
+    this._successType = 'Held';
     /** @type {boolean} */
     this._isLoading = false;
   }
@@ -85,10 +85,12 @@ export class FeatureFlow extends ScopedElementsMixin(LitElement) {
         : await this.service.unholdCard(this.cardId ?? '');
 
       this.cardStatus = action === 'hold' ? 'on-hold' : 'active';
-      this._currentStep = action === 'hold' ? 'success-held' : 'success-unheld';
+      this._successType = action === 'hold' ? 'Held' : 'Unheld';
+      this._currentStep = 'success';
     } catch (err) {
       const errorCode = /** @type {import('./types.js').ErrorContext} */ (err).errorCode;
-      this._currentStep = ERROR_STEP_MAP[errorCode] || 'error-generic';
+      this._errorType = ERROR_TYPE_MAP[errorCode] || 'SomethingWentWrong';
+      this._currentStep = 'error';
     } finally {
       this._isLoading = false;
       this._moveFocusToContent();
@@ -105,6 +107,11 @@ export class FeatureFlow extends ScopedElementsMixin(LitElement) {
     console.log('Flow dismissed');
     this._currentStep = 'toggle';
     this._moveFocusToContent();
+  }
+
+  _handleAuthRedirect() {
+    // In a real app, this would integrate with the auth service
+    console.log('Auth redirect requested');
   }
 
   /** Move focus to the content container after a screen transition (a11y). */
@@ -128,16 +135,20 @@ export class FeatureFlow extends ScopedElementsMixin(LitElement) {
             ?isLoading=${this._isLoading}
             @action="${this._handleAction}">
           </holdcard-toggle-screen>`;
-      case 'success-held':
-        return html`<hold-success-screen @dismiss="${this._handleDismiss}"></hold-success-screen>`;
-      case 'success-unheld':
-        return html`<unhold-success-screen @dismiss="${this._handleDismiss}"></unhold-success-screen>`;
-      case 'error-generic':
-        return html`<generic-error-screen @retry="${this._handleRetry}" @dismiss="${this._handleDismiss}"></generic-error-screen>`;
-      case 'error-timeout':
-        return html`<timeout-error-screen @retry="${this._handleRetry}" @dismiss="${this._handleDismiss}"></timeout-error-screen>`;
-      case 'error-session':
-        return html`<session-expired-error-screen></session-expired-error-screen>`;
+      case 'error':
+        return html`
+          <error-screen
+            error-type="${this._errorType}"
+            @retry="${this._handleRetry}"
+            @dismiss="${this._handleDismiss}"
+            @auth-redirect="${this._handleAuthRedirect}">
+          </error-screen>`;
+      case 'success':
+        return html`
+          <success-screen
+            success-type="${this._successType}"
+            @dismiss="${this._handleDismiss}">
+          </success-screen>`;
       default:
         return html``;
     }

@@ -55,7 +55,7 @@ Wraps a Layout to lock in defaults (icon, color, standard actions) while forward
 
 Injects domain logic into a Shell. This is where API calls, redirects, and business rules live.
 
-**This codebase:** `session-expired-error-screen` fills the Shell with auth-specific copy and dispatches `auth-redirect` on button click. `feature-flow` orchestrates the entire journey.
+**This codebase:** `error-screen` handles all error variants via a `errorType` prop — each variant's render function wires its own buttons and events. `feature-flow` orchestrates the entire journey.
 
 **Rules:**
 - Owns the domain logic. The Shell stays dumb.
@@ -89,55 +89,38 @@ Because the Flow Controller owns the API calls, it also owns the loading state b
 
 ---
 
-## Self-Contained Screens & Thin Router
+## Variant-Driven Screens & Thin Router
 
-Every screen variant is its own self-contained component. The orchestrator is a thin state machine that maps step names to components — it never holds text content, fixture data, or per-variant rendering logic.
+Screen variants (different error types, success states) are handled by a **single component per screen category** with a `type` property. Each variant has its own render function in the template file, giving full control over copy, buttons, and behavior — without creating separate component directories per variant.
+
+This follows the established `account-closure` ErrorScreen pattern used in production.
 
 ### The pattern
 
 ```
 feature-flow (THIN ROUTER)
 ├── Calls the service (API logic)
-├── Maps errorCode → step name
-├── _renderStep() — switch statement, one case per screen
-└── Listens for navigation events (retry, dismiss)
+├── Maps errorCode → errorType string
+├── _renderStep() — 3 cases: toggle, error, success
+└── Passes variant type as attribute: error-type="Timeout"
 
-Each screen (SELF-CONTAINED)
-├── Wraps a reusable shell (status-error-screen / status-success-screen)
-├── Hardcodes its own title, message, and button labels
-├── Owns any unique behavior (redirects, analytics)
-└── Emits generic events: 'retry', 'dismiss', 'auth-redirect'
+error-screen (VARIANT-DRIVEN)
+├── errorType property: 'SomethingWentWrong' | 'Timeout' | 'SessionExpired'
+├── render() switches on errorType
+├── Template exports one render function per variant
+├── Component has all possible handlers (retry, dismiss, auth-redirect)
+└── Each render function wires only the handlers it needs
 ```
-
-### When to create a new screen
-
-Every new variant gets its own component directory — regardless of whether the difference is "just text."
-
-```
-Does the new variant differ from existing screens?
-  (text, behavior, both)
-    │
-    └── Create a new self-contained Smart Component.
-        It wraps the existing shell and hardcodes its content.
-        e.g., timeout-error-screen wraps status-error-screen
-```
-
-### Why not use fixtures?
-
-A fixture-driven approach (where the orchestrator holds text content and pipes it as props) has two problems:
-
-1. **The orchestrator becomes a God Component.** Every new error type means editing `feature-flow.js` to add fixture data and routing logic. At 10+ variants, the file is unreadable.
-2. **Screens can't be tested or rendered in isolation.** A generic shell needs the orchestrator to provide its content — you can't just `<timeout-error-screen></timeout-error-screen>` in a Storybook story or test.
 
 ### Real example from this codebase
 
-| Variant | Component | Wraps | Why it's separate |
-|---------|-----------|-------|-------------------|
-| Generic error ("Something went wrong") | `generic-error-screen` | `status-error-screen` | Own title/message, retryable |
-| Timeout error | `timeout-error-screen` | `status-error-screen` | Own title/message, retryable |
-| Session expired | `session-expired-error-screen` | `status-error-screen` | Unique behavior: `auth-redirect`, no retry |
-| Hold success | `hold-success-screen` | `status-success-screen` | Own title/message |
-| Unhold success | `unhold-success-screen` | `status-success-screen` | Own title/message |
+| Variant | Component | `error-type` value | Behavior |
+|---------|-----------|-------------------|----------|
+| Generic error | `error-screen` | `SomethingWentWrong` | Retry + Dismiss |
+| Timeout error | `error-screen` | `Timeout` | Retry + Dismiss |
+| Session expired | `error-screen` | `SessionExpired` | Auth Redirect |
+| Hold success | `success-screen` | `Held` | Dismiss |
+| Unhold success | `success-screen` | `Unheld` | Dismiss |
 
 ### The orchestrator's `_renderStep()`
 
@@ -146,24 +129,48 @@ _renderStep() {
   switch (this._currentStep) {
     case 'toggle':
       return html`<holdcard-toggle-screen ...></holdcard-toggle-screen>`;
-    case 'success-held':
-      return html`<hold-success-screen @dismiss="${this._handleDismiss}"></hold-success-screen>`;
-    case 'error-generic':
-      return html`<generic-error-screen @retry="${this._handleRetry}" @dismiss="${this._handleDismiss}"></generic-error-screen>`;
-    case 'error-session':
-      return html`<session-expired-error-screen></session-expired-error-screen>`;
-    // ...
+    case 'error':
+      return html`<error-screen
+        error-type="${this._errorType}"
+        @retry="${this._handleRetry}"
+        @dismiss="${this._handleDismiss}"
+        @auth-redirect="${this._handleAuthRedirect}">
+      </error-screen>`;
+    case 'success':
+      return html`<success-screen
+        success-type="${this._successType}"
+        @dismiss="${this._handleDismiss}">
+      </success-screen>`;
   }
 }
 ```
 
-No props piped. No fixture lookup. Each screen is a self-sufficient web component.
+Only 3 cases. Only 2 screen registrations. The variant prop handles all variation.
 
-### Adding a new error type
+### Adding a new error variant
 
-1. Create `src/screens/error/{type}/` with 4 files (`.js`, `.template.js`, `.styles.js`, `index.js`)
-2. Wrap `status-error-screen` with hardcoded content
-3. Register in `feature-flow.js` scopedElements
-4. Add a case to `ERROR_STEP_MAP` and `_renderStep()`
-5. The orchestrator diff is ~3 lines — no fixture objects, no prop piping
+1. Add a render function in `error-screen.template.js` (e.g., `renderRateLimited`)
+2. Add a case to the `render()` switch in `error-screen.js`
+3. Update the `ErrorType` typedef
+4. Add a Storybook story in `error-screen.stories.js`
+5. **The orchestrator diff is 0 lines** — it already renders `<error-screen>` and the type mapping covers it
+
+### When to extract a variant into its own component
+
+Only when a variant grows so complex that it needs its **own state machine, service injection, or lifecycle hooks** — not just different text or buttons. In practice, this is rare. If it happens, create a subdirectory under `screens/error/` for that specific variant.
+
+### Why not use fixtures?
+
+A fixture-driven approach (where the orchestrator holds text content and pipes it as props) has two problems:
+
+1. **The orchestrator becomes a God Component.** Every new error type means editing the router to add fixture data and rendering logic.
+2. **Screens can't be tested independently.** A generic shell needs external content — you can't just render `<error-screen error-type="Timeout">` in a story or test.
+
+### Why not one component per variant?
+
+Creating a separate 4-file directory for each text-only variant causes:
+
+1. **File explosion.** 5 variants × 4 files = 20 files for what's essentially different strings.
+2. **Identical logic duplication.** `generic-error-screen.js` and `timeout-error-screen.js` are the same class — only the template text differs.
+3. **Orchestrator bloat.** Each variant needs its own scoped element registration and switch case.
 

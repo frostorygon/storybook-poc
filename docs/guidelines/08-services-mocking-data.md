@@ -134,10 +134,10 @@ async connectedCallback() {
 // DON'T
 ${this.error?.response?.status === 401 ? html`<p>Session expired</p>` : ''}
 
-// DO — the orchestrator routes based on errorCode
-${this._errorContext?.errorCode === 'SESSION_EXPIRED'
-  ? html`<session-expired-error-screen></session-expired-error-screen>`
-  : this._renderGenericError()}
+// DO — the orchestrator sets errorType, the screen handles the rest
+this._errorType = ERROR_TYPE_MAP[errorCode] || 'SomethingWentWrong';
+this._currentStep = 'error';
+// → renders <error-screen error-type="SessionExpired">
 ```
 
 ---

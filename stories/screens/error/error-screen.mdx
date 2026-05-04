@@ -1,0 +1,63 @@
+import { Meta, Canvas, Story } from '@storybook/addon-docs/blocks';
+import * as ErrorScreenStories from './error-screen.stories.js';
+
+<Meta of={ErrorScreenStories} name="Docs" />
+
+# Error Screen
+
+**A variant-driven Smart Component following the account-closure pattern.**
+
+The `error-screen` component handles all error variants via a single `error-type` attribute.
+Each variant has its own render function in the template file, giving full control over copy, buttons, and behavior — without creating separate component directories per variant.
+
+---
+
+## Variants
+
+Use the **Controls** panel to switch between error types:
+
+| `error-type` value | Title | Behavior |
+|---|---|---|
+| `SomethingWentWrong` (default) | "Something went wrong" | Retry + Dismiss |
+| `Timeout` | "Request timed out" | Retry + Dismiss |
+| `SessionExpired` | "Session expired" | Auth Redirect (Go to Login) |
+
+---
+
+## Interactive Playground
+
+<Canvas>
+  <Story of={ErrorScreenStories.SomethingWentWrong} />
+</Canvas>
+
+---
+
+## Usage Example
+
+```js
+import { html, LitElement } from 'lit';
+import { ErrorScreen } from '@scope/error-screen';
+
+class MyFeature extends LitElement {
+  static get scopedElements() {
+    return { 'error-screen': ErrorScreen };
+  }
+
+  render() {
+    return html\`
+      <error-screen
+        error-type="Timeout"
+        @retry="\${this.handleRetry}"
+        @dismiss="\${this.handleDismiss}">
+      </error-screen>
+    \`;
+  }
+}
+```
+
+## Adding a New Error Variant
+
+1. Add a render function in `error-screen.template.js`
+2. Add a case to the `render()` switch in `error-screen.js`
+3. Add a story in `error-screen.stories.js`
+4. Update the `ErrorType` typedef

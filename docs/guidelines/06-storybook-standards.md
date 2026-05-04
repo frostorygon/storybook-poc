@@ -34,7 +34,9 @@ Flows/
     Network Timeout → Error
 Screens/
   Error/
-    Session Expired       ← standalone smart component
+    Something Went Wrong  ← variant: error-type="SomethingWentWrong"
+    Request Timed Out     ← variant: error-type="Timeout"
+    Session Expired       ← variant: error-type="SessionExpired"
   Toggle Screen           ← with Controls + Actions + Interactions
   Error Screen            ← reusable shell with controls + edge cases
   Success Screen          ← with dismiss action + edge cases
