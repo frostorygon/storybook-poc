@@ -107,9 +107,9 @@ feature-flow (THIN ROUTER)
 error-screen (VARIANT-DRIVEN)
 ├── errorType property: 'SomethingWentWrong' | 'Timeout' | 'SessionExpired'
 ├── render() switches on errorType
-├── Template exports one render function per variant
+├── Template file exports one template function per variant
 ├── Component has all possible handlers (retry, dismiss, auth-redirect)
-└── Each render function wires only the handlers it needs
+└── Each template function receives only the handlers it needs
 ```
 
 ### Real example from this codebase
@@ -149,7 +149,7 @@ Only 3 cases. Only 2 screen registrations. The variant prop handles all variatio
 
 ### Adding a new error variant
 
-1. Add a render function in `error-screen.template.js` (e.g., `renderRateLimited`)
+1. Add a template function in `error-screen.template.js` (e.g., `templateRateLimited`)
 2. Add a case to the `render()` switch in `error-screen.js`
 3. Update the `ErrorType` typedef
 4. Add a Storybook story in `error-screen.stories.js`

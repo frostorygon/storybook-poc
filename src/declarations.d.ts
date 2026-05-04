@@ -28,6 +28,7 @@ declare global {
     'status-error-screen': import('./components/screens/status-error-screen/status-error-screen.js').StatusErrorScreen;
     'status-success-screen': import('./components/screens/status-success-screen/status-success-screen.js').StatusSuccessScreen;
     'holdcard-toggle-screen': import('./screens/toggle/holdcard-toggle-screen.js').HoldcardToggleScreen;
-    'session-expired-error-screen': import('./screens/error/session-expired/session-expired-error-screen.js').SessionExpiredErrorScreen;
+    'error-screen': import('./screens/error/error-screen.js').ErrorScreen;
+    'success-screen': import('./screens/success/success-screen.js').SuccessScreen;
   }
 }
