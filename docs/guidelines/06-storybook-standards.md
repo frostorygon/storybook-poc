@@ -31,6 +31,7 @@ Flows/
     Unhold Card
     API Unavailable → Error
     Session Expired → Error
+    Network Timeout → Error
 Screens/
   Error/
     Session Expired       ← standalone smart component

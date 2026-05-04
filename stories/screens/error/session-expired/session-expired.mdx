@@ -9,7 +9,7 @@ import * as SessionExpiredStories from './session-expired.stories.js';
 
 The `session-expired-error-screen` is a **Smart Component**. It represents an enterprise pattern where a domain-specific action (Authentication Redirect) is encapsulated inside the screen itself.
 
-Unlike generic errors which are mapped via fixtures in the Flow orchestrator, this component manages its own specialized logic, preventing the parent Flow from becoming a "God Component".
+Unlike generic errors (which also have their own self-contained components like `generic-error-screen` and `timeout-error-screen`), this component additionally manages specialized auth-redirect logic — demonstrating how Smart Components handle unique domain behavior beyond just differing text.
 
 ---
 

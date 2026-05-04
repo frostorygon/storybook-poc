@@ -167,7 +167,7 @@ The only exception is the **root orchestrator** (`feature-flow.js`) which calls 
 
 ### Mock data
 
-API fixtures live in `demo/mocks/api/` — they represent feature-level data states, not component-level concerns. A generic reusable component like `status-error-screen` should not own error code fixtures; those belong to the feature flow that maps domain data to component props. See [08-services-mocking-data.md](./08-services-mocking-data.md) for the full mock architecture.
+API fixtures live in `demo/mocks/api/` — they represent feature-level data states, not component-level concerns. Each self-contained screen owns its own display text; mock data is consumed by stories (via `parameters.mocks`) and tests (via direct imports), not piped through the orchestrator. See [08-services-mocking-data.md](./08-services-mocking-data.md) for the full mock architecture.
 
 ### When to skip files
 
