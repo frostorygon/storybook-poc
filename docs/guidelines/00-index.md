@@ -17,3 +17,4 @@ For project-level architecture decisions (folder rationale, mock architecture, b
 | 07 | [Testing Standards](./07-testing-standards.md) | Vitest browser mode, `mount()` helper, component/service/orchestrator tests |
 | 08 | [Services, Mocking & Data](./08-services-mocking-data.md) | DI, error normalization, `@web/mocks` architecture, naming conventions |
 | 09 | [Accessibility & i18n](./09-accessibility-and-i18n.md) | WCAG AA, focus management, Lion `LocalizeMixin`, translation patterns |
+| 10 | [API Onboarding](./10-api-onboarding.md) | Step-by-step guide for adding new backend endpoints to the mock layer |
