@@ -1,15 +1,14 @@
 import { html } from 'lit';
 
 /**
- * Render functions for each success variant.
- * Each function receives explicit props.
+ * Template functions for each success variant.
  */
 
 /**
  * @param {object} props
  * @param {(e: Event) => void} props.onDismiss
  */
-export function renderHeld({ onDismiss }) {
+export function templateHeld({ onDismiss }) {
   return html`
     <status-success-screen
       .successTitle=${'Card successfully put on hold'}
@@ -24,7 +23,7 @@ export function renderHeld({ onDismiss }) {
  * @param {object} props
  * @param {(e: Event) => void} props.onDismiss
  */
-export function renderUnheld({ onDismiss }) {
+export function templateUnheld({ onDismiss }) {
   return html`
     <status-success-screen
       .successTitle=${'Card successfully reactivated'}

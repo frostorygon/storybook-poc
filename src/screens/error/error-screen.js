@@ -3,9 +3,9 @@ import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { LitElement } from 'lit';
 import { StatusErrorScreen } from '../../components/screens/status-error-screen/index.js';
 import {
-  renderSomethingWentWrong,
-  renderTimeout,
-  renderSessionExpired,
+  templateSomethingWentWrong,
+  templateTimeout,
+  templateSessionExpired,
 } from './error-screen.template.js';
 import { styles } from './error-screen.styles.js';
 
@@ -17,7 +17,7 @@ import { styles } from './error-screen.styles.js';
  * error-screen
  *
  * Single screen component that handles all error variants via the
- * `errorType` property. Each variant has its own render function in
+ * `errorType` property. Each variant has its own template function in
  * the template file, giving full control over copy, buttons, and behavior.
  *
  * Follows the account-closure ErrorScreen pattern.
@@ -49,8 +49,6 @@ export class ErrorScreen extends ScopedElementsMixin(LitElement) {
     this.errorType = 'SomethingWentWrong';
   }
 
-  // ── Event handlers ─────────────────────────────────────────────
-
   _onRetry() {
     this.dispatchEvent(new CustomEvent('retry', { bubbles: true, composed: true }));
   }
@@ -64,39 +62,23 @@ export class ErrorScreen extends ScopedElementsMixin(LitElement) {
     this.dispatchEvent(new CustomEvent('auth-redirect', { bubbles: true, composed: true }));
   }
 
-  // ── Private render methods (param assembly) ────────────────────
-
-  _renderSomethingWentWrong() {
-    return renderSomethingWentWrong({
-      onRetry: () => this._onRetry(),
-      onDismiss: () => this._onDismiss(),
-    });
-  }
-
-  _renderTimeout() {
-    return renderTimeout({
-      onRetry: () => this._onRetry(),
-      onDismiss: () => this._onDismiss(),
-    });
-  }
-
-  _renderSessionExpired() {
-    return renderSessionExpired({
-      onAuthRedirect: () => this._onAuthRedirect(),
-    });
-  }
-
-  // ── Render (routing only) ──────────────────────────────────────
-
   render() {
     switch (this.errorType) {
       case 'Timeout':
-        return this._renderTimeout();
+        return templateTimeout({
+          onRetry: () => this._onRetry(),
+          onDismiss: () => this._onDismiss(),
+        });
       case 'SessionExpired':
-        return this._renderSessionExpired();
+        return templateSessionExpired({
+          onAuthRedirect: () => this._onAuthRedirect(),
+        });
       case 'SomethingWentWrong':
       default:
-        return this._renderSomethingWentWrong();
+        return templateSomethingWentWrong({
+          onRetry: () => this._onRetry(),
+          onDismiss: () => this._onDismiss(),
+        });
     }
   }
 }

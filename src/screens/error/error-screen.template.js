@@ -1,11 +1,12 @@
 import { html } from 'lit';
 
 /**
- * Render functions for each error variant.
+ * Template functions for each error variant.
  * Each function receives explicit props — not the component instance.
  *
- * When localization (msgLit) is added, these will switch to receiving
- * the component context (ctx) like the account-closure pattern.
+ * Naming follows guideline 03: `template` + VariantName.
+ * When localization (msgLit) is added, pass it as a prop per guideline 03's
+ * "Translations in Templates" section.
  */
 
 /**
@@ -13,7 +14,7 @@ import { html } from 'lit';
  * @param {(e: Event) => void} props.onRetry
  * @param {(e: Event) => void} props.onDismiss
  */
-export function renderSomethingWentWrong({ onRetry, onDismiss }) {
+export function templateSomethingWentWrong({ onRetry, onDismiss }) {
   return html`
     <status-error-screen
       .errorTitle=${"Something went wrong"}
@@ -32,7 +33,7 @@ export function renderSomethingWentWrong({ onRetry, onDismiss }) {
  * @param {(e: Event) => void} props.onRetry
  * @param {(e: Event) => void} props.onDismiss
  */
-export function renderTimeout({ onRetry, onDismiss }) {
+export function templateTimeout({ onRetry, onDismiss }) {
   return html`
     <status-error-screen
       .errorTitle=${'Request timed out'}
@@ -50,7 +51,7 @@ export function renderTimeout({ onRetry, onDismiss }) {
  * @param {object} props
  * @param {(e: Event) => void} props.onAuthRedirect
  */
-export function renderSessionExpired({ onAuthRedirect }) {
+export function templateSessionExpired({ onAuthRedirect }) {
   return html`
     <status-error-screen>
       <span slot="title">Session expired</span>
