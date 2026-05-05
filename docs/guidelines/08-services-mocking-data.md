@@ -380,4 +380,49 @@ Pattern: **`{scenario}{Resource}Response`** — for test assertions.
 5. **Scenarios are bundles, not individual handlers.** A scenario = "what should the entire API look like?"
 6. **`default` scenario = happy path.** Every endpoint returns success. This is what most stories get.
 7. **Never import mock files into production code.** They are test/dev only.
+8. **Mocks are unconditional.** A mock entry returns one predetermined response — no `if`, no request inspection, no branching. The decision of "which response" is made by which mock the scenario picks, not by logic inside the mock.
 
+### Anti-Pattern: Conditional Mocks
+
+```javascript
+// ❌ BAD — logic inside a mock handler
+'/api/v1/cards/:cardId/hold': {
+  ok: (req) => {
+    if (req.body.reason === 'lost') {
+      return Response.json({ errorCode: 'CARD_LOST' }, { status: 400 });
+    }
+    if (someGlobalFlag) {
+      return Response.json({ errorCode: 'TIMEOUT' }, { status: 504 });
+    }
+    return Response.json({ transactionType: 'held' });
+  },
+}
+```
+
+This makes stories non-deterministic — you can't tell what the mock will return by reading it. Debugging becomes guesswork.
+
+```javascript
+// ✅ GOOD — one entry per outcome, zero logic
+'/api/v1/cards/:cardId/hold': {
+  ok:             () => import('./api/cards/hold/ok.js').then(r => Response.json(r.default)),
+  genericError:   () => Response.json({ errorCode: 'GENERIC_ERROR' }, { status: 500 }),
+  cardLost:       () => Response.json({ errorCode: 'CARD_LOST' }, { status: 400 }),
+  timeout:        () => Response.json({ errorCode: 'TIMEOUT' }, { status: 504 }),
+  sessionExpired: () => Response.json({ errorCode: 'SESSION_EXPIRED' }, { status: 401 }),
+}
+```
+
+Then the scenario picks the right one:
+
+```javascript
+// scenarios.js — deterministic, readable
+cardLost: [
+  http.get(CARD_URL, mocks[CARD_URL].ok),
+  http.post(HOLD_URL, mocks[HOLD_URL].cardLost),
+],
+```
+
+**Why?**
+- **Deterministic.** Each story = one scenario = one fixed set of responses. Same result every time.
+- **Debuggable.** Read the scenario, see `mocks[HOLD_URL].cardLost`, know exactly what the API returned.
+- **No flaky tests.** No conditions means no branches that could silently change behavior.
